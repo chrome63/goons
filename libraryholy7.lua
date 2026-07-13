@@ -6969,9 +6969,28 @@ function Library:AddContextMenu(
 )
     local Menu
     local ParentGui = Holder:FindFirstAncestorOfClass("ScreenGui")
-    if ParentGui ~= ScreenGui and (Library.ActiveLoading and ParentGui ~= Library.ActiveLoading.ScreenGui) then
-        ParentGui = ScreenGui
+
+    if ParentGui ~= ScreenGui
+    and (
+        Library.ActiveLoading
+        and ParentGui ~= Library.ActiveLoading.ScreenGui
+    ) then
+
+        ParentGui =
+            ScreenGui
     end
+
+    local MenuZIndex =
+        math.max(
+            10,
+            (
+                tonumber(
+                    Holder.ZIndex
+                )
+                or 1
+            )
+            + 10
+        )
 
     if List then
         Menu = New("ScrollingFrame", {
@@ -6985,7 +7004,7 @@ function Library:AddContextMenu(
             Size = typeof(Size) == "function" and Size() or Size,
             TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
             Visible = false,
-            ZIndex = 10,
+            ZIndex = MenuZIndex,
             Parent = ParentGui,
         })
     else
@@ -6993,7 +7012,7 @@ function Library:AddContextMenu(
             BackgroundColor3 = "BackgroundColor",
             Size = typeof(Size) == "function" and Size() or Size,
             Visible = false,
-            ZIndex = 10,
+            ZIndex = MenuZIndex,
             Parent = ParentGui,
         })
     end
@@ -12198,6 +12217,19 @@ do
             Parent = Container,
         })
 
+        local DropdownControlZIndex =
+            (
+                tonumber(
+                    Holder.ZIndex
+                )
+                or 1
+            )
+            + 1
+
+        local DropdownForegroundZIndex =
+            DropdownControlZIndex
+            + 1
+
         local Label = New("TextLabel", {
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 0, 14),
@@ -12205,7 +12237,7 @@ do
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             Visible = not not Info.Text,
-            ZIndex = 3,
+            ZIndex = DropdownControlZIndex,
             Parent = Holder,
         })
 
@@ -12216,7 +12248,7 @@ do
             Size = UDim2.new(1, 0, 0, 21),
             Text = "",
             TextTransparency = 1,
-            ZIndex = 2,
+            ZIndex = DropdownControlZIndex,
             Parent = Holder,
         })
 
@@ -12247,7 +12279,7 @@ do
             Size = UDim2.fromOffset(16, 16),
             Image = "",
             ImageTransparency = 1,
-            ZIndex = 2,
+            ZIndex = DropdownForegroundZIndex,
             Parent = DisplayContainer,
         })
 
@@ -12258,7 +12290,7 @@ do
             Text = "---",
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 2,
+            ZIndex = DropdownForegroundZIndex,
             Parent = DisplayContainer,
         })
 
@@ -12274,6 +12306,7 @@ do
             ImageTransparency = 0.5,
             Position = UDim2.fromScale(1, 0.5),
             Size = UDim2.fromOffset(16, 16),
+            ZIndex = DropdownForegroundZIndex,
             Parent = DisplayContainer,
         })
 
