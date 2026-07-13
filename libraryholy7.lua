@@ -228,8 +228,22 @@ local Library = {
     OriginalMinSize = Vector2.new(480, 360),
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
-        CornerRadius = 7,
+
+    CornerRadius = 4,
     CornerRadiusDropdown = true,
+
+    SharpStyle = true,
+
+    StrokeRegistry = {},
+
+    SurfaceTransparencyMultipliers = {
+        Window = 1,
+        Chrome = 0.38,
+        Panel = 0.30,
+        Groupbox = 0.20,
+        Control = 0.14,
+        Overlay = 0.08,
+    },
 
     IsLightTheme = false,
     ThemeName = "HOLY Red",
@@ -253,7 +267,7 @@ local Library = {
         BackgroundColor = Color3.fromRGB(3, 3, 5),
         MainColor = Color3.fromRGB(12, 13, 16),
         AccentColor = Color3.fromRGB(232, 45, 67),
-        OutlineColor = Color3.fromRGB(42, 18, 23),
+        OutlineColor = Color3.fromRGB(38, 40, 48),
         FontColor = Color3.fromRGB(245, 245, 247),
         Font = Font.fromEnum(Enum.Font.GothamMedium),
 
@@ -362,7 +376,7 @@ local Templates = {
         TabSwipeOffset = 12,
         TabSwipeFrom = "bottom",
 
-        CornerRadius = 6,
+        CornerRadius = 4,
         NotifySide = "Right",
         ShowCustomCursor = true,
         Font = Enum.Font.GothamMedium,
@@ -595,7 +609,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(3, 3, 5),
         MainColor = Color3.fromRGB(12, 13, 16),
         AccentColor = Color3.fromRGB(232, 45, 67),
-        OutlineColor = Color3.fromRGB(42, 18, 23),
+        OutlineColor = Color3.fromRGB(38, 40, 48),
         FontColor = Color3.fromRGB(245, 245, 247),
 
         SuccessColor = Color3.fromRGB(105, 229, 160),
@@ -614,7 +628,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(3, 7, 15),
         MainColor = Color3.fromRGB(9, 16, 29),
         AccentColor = Color3.fromRGB(74, 137, 255),
-        OutlineColor = Color3.fromRGB(22, 45, 79),
+        OutlineColor = Color3.fromRGB(35, 43, 58),
         FontColor = Color3.fromRGB(239, 244, 255),
 
         SuccessColor = Color3.fromRGB(91, 220, 158),
@@ -633,7 +647,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(7, 4, 13),
         MainColor = Color3.fromRGB(18, 11, 29),
         AccentColor = Color3.fromRGB(161, 92, 255),
-        OutlineColor = Color3.fromRGB(56, 31, 79),
+        OutlineColor = Color3.fromRGB(47, 41, 57),
         FontColor = Color3.fromRGB(247, 241, 255),
 
         SuccessColor = Color3.fromRGB(104, 226, 166),
@@ -652,7 +666,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(3, 10, 8),
         MainColor = Color3.fromRGB(8, 23, 18),
         AccentColor = Color3.fromRGB(43, 203, 132),
-        OutlineColor = Color3.fromRGB(21, 67, 50),
+        OutlineColor = Color3.fromRGB(34, 48, 43),
         FontColor = Color3.fromRGB(237, 252, 246),
 
         SuccessColor = Color3.fromRGB(73, 229, 151),
@@ -671,7 +685,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(2, 9, 13),
         MainColor = Color3.fromRGB(7, 22, 29),
         AccentColor = Color3.fromRGB(52, 205, 232),
-        OutlineColor = Color3.fromRGB(21, 65, 77),
+        OutlineColor = Color3.fromRGB(34, 48, 55),
         FontColor = Color3.fromRGB(237, 251, 255),
 
         SuccessColor = Color3.fromRGB(90, 227, 167),
@@ -855,13 +869,32 @@ function Library:ApplyTransparencyToSurface(instance)
         return false
     end
 
+    if typeof(instance) ~= "Instance"
+    or instance.Parent == nil then
+
+        Library.SurfaceRegistry[
+            instance
+        ] =
+            nil
+
+        return false
+    end
+
     local success =
         pcall(function()
 
+            local role =
+                tostring(
+                    data.Role
+                    or "Panel"
+                )
+
             local multiplier =
-                data.Role == "Control"
-                and 0.35
-                or 1
+                Library.SurfaceTransparencyMultipliers[
+                    role
+                ]
+                or Library.SurfaceTransparencyMultipliers.Panel
+                or 0.30
 
             if (
                 tonumber(
@@ -873,7 +906,8 @@ function Library:ApplyTransparencyToSurface(instance)
                 multiplier =
                     math.min(
                         multiplier,
-                        0.35
+                        Library.SurfaceTransparencyMultipliers.Overlay
+                        or 0.08
                     )
             end
 
@@ -1450,6 +1484,9 @@ function Library:RemoveFromRegistry(Instance)
 
     Library.SurfaceRegistry[Instance] =
         nil
+
+    Library.StrokeRegistry[Instance] =
+        nil
 end
 
 function Library:UpdateColorsUsingRegistry()
@@ -1477,21 +1514,85 @@ function Library:UpdateColorsUsingRegistry()
 end
 
 function Library:SetDPIScale(DPIScale: number)
-    Library.DPIScale = DPIScale / 100
-    Library.MinSize = Library.OriginalMinSize * Library.DPIScale
 
-	for _, UIScale in Library.Scales do
-        UIScale.Scale = Library.DPIScale - (tonumber(Library.ScalesOffset[UIScale]) or 0)
+    Library.DPIScale =
+        math.clamp(
+            tonumber(DPIScale)
+            or 100,
+            30,
+            110
+        )
+        / 100
+
+    Library.MinSize =
+        Library.OriginalMinSize
+        * Library.DPIScale
+
+    for _, UIScale in ipairs(
+        Library.Scales
+    ) do
+
+        UIScale.Scale =
+            Library.DPIScale
+            - (
+                tonumber(
+                    Library.ScalesOffset[
+                        UIScale
+                    ]
+                )
+                or 0
+            )
     end
 
-    for _, Option in Options do
-        if Option.Type == "Dropdown" then
-            Option:RecalculateListSize()
+    for stroke, baseThickness in pairs(
+        Library.StrokeRegistry
+    ) do
+
+        if typeof(stroke) ~= "Instance"
+        or stroke.Parent == nil then
+
+            Library.StrokeRegistry[
+                stroke
+            ] =
+                nil
+
+        else
+
+            pcall(function()
+
+                stroke.Thickness =
+                    math.clamp(
+                        baseThickness
+                        / math.max(
+                            Library.DPIScale,
+                            0.05
+                        ),
+                        baseThickness,
+                        baseThickness * 2
+                    )
+            end)
         end
     end
 
-    for _, Notification in Library.Notifications do
-        Notification:Resize()
+    for _, option in pairs(
+        Options
+    ) do
+
+        if option.Type == "Dropdown"
+        and type(option.RecalculateListSize) == "function" then
+
+            option:RecalculateListSize()
+        end
+    end
+
+    for _, notification in pairs(
+        Library.Notifications
+    ) do
+
+        if type(notification.Resize) == "function" then
+
+            notification:Resize()
+        end
     end
 end
 
@@ -1617,6 +1718,36 @@ local function New(ClassName: string, Properties: { [string]: any }): any
         FillInstance(Templates[ClassName], Instance)
     end
     FillInstance(Properties, Instance)
+
+    if Instance:IsA("UIStroke")
+    and Instance.ApplyStrokeMode
+        == Enum.ApplyStrokeMode.Border then
+
+        local baseThickness =
+            tonumber(
+                Instance.Thickness
+            )
+            or 1
+
+        Library.StrokeRegistry[
+            Instance
+        ] =
+            baseThickness
+
+        Instance.Thickness =
+            math.clamp(
+                baseThickness
+                / math.max(
+                    tonumber(
+                        Library.DPIScale
+                    )
+                    or 1,
+                    0.05
+                ),
+                baseThickness,
+                baseThickness * 2
+            )
+    end
 
     if Properties["Parent"]
     and not Properties["ZIndex"] then
@@ -3120,24 +3251,62 @@ end
 
 function Library:AddOutline(Frame: GuiObject)
 
-    local OutlineStroke = New("UIStroke", {
-        Color = "OutlineColor",
-        Thickness = 1,
-        Transparency = 0.48,
-        ZIndex = 2,
-        Parent = Frame,
-    })
+    local OutlineStroke =
+        New(
+            "UIStroke",
+            {
+                ApplyStrokeMode =
+                    Enum.ApplyStrokeMode.Border,
 
-    local ShadowStroke = New("UIStroke", {
-        Color = "DarkColor",
-        Thickness = 1,
-        Transparency = 0.92,
-        ZIndex = 1,
-        Parent = Frame,
-    })
+                Color =
+                    "OutlineColor",
+
+                LineJoinMode =
+                    Enum.LineJoinMode.Miter,
+
+                Thickness =
+                    1,
+
+                Transparency =
+                    0.12,
+
+                ZIndex =
+                    2,
+
+                Parent =
+                    Frame,
+            }
+        )
+
+    local CompatibilityStroke =
+        New(
+            "UIStroke",
+            {
+                ApplyStrokeMode =
+                    Enum.ApplyStrokeMode.Border,
+
+                Color =
+                    "DarkColor",
+
+                LineJoinMode =
+                    Enum.LineJoinMode.Miter,
+
+                Thickness =
+                    1,
+
+                Transparency =
+                    1,
+
+                ZIndex =
+                    1,
+
+                Parent =
+                    Frame,
+            }
+        )
 
     return OutlineStroke,
-        ShadowStroke
+        CompatibilityStroke
 end
 
 function Library:AddBlank(Frame: GuiObject, Size: UDim2)
@@ -7511,6 +7680,16 @@ function Library:AddContextMenu(
             Parent = ParentGui,
         })
     end
+
+    Library:RegisterSurface(
+        Menu,
+        "Overlay",
+        0.02
+    )
+
+    Menu.Active =
+        true
+
     table.insert(
         Library.Scales,
         New("UIScale", {
@@ -12246,7 +12425,8 @@ do
             Size = UDim2.new(1, 0, 0, 21),
             Text = Input.Value,
             TextEditable = not Input.Disabled,
-            TextScaled = true,
+            TextScaled = false,
+            TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Holder,
         })
@@ -15956,6 +16136,13 @@ function Library:CreateWindow(WindowInfo)
             Visible = false,
             Parent = ScreenGui,
         })
+
+        Library:RegisterSurface(
+            MainFrame,
+            "Window",
+            0.02
+        )
+
         table.insert(
             Library.Corners,
             New("UICorner", {
@@ -16008,11 +16195,34 @@ function Library:CreateWindow(WindowInfo)
         end
 
         --// Top Bar \\-
-        local TopBar = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 0, 44),
-            Parent = MainFrame,
-        })
+        local TopBar =
+            New(
+                "Frame",
+                {
+                    BackgroundColor3 =
+                        "BackgroundColor",
+
+                    BackgroundTransparency =
+                        0.08,
+
+                    Size =
+                        UDim2.new(
+                            1,
+                            0,
+                            0,
+                            44
+                        ),
+
+                    Parent =
+                        MainFrame,
+                }
+            )
+
+        Library:RegisterSurface(
+            TopBar,
+            "Chrome",
+            0.08
+        )
         Library:MakeDraggable(MainFrame, TopBar, false, true)
 
         --// Title
@@ -16133,7 +16343,8 @@ function Library:CreateWindow(WindowInfo)
             BackgroundColor3 = "MainColor",
             PlaceholderText = "Search",
             Size = WindowInfo.SearchbarSize,
-            TextScaled = true,
+            TextScaled = false,
+            TextSize = 14,
             Visible = not (WindowInfo.DisableSearch or false),
             Parent = RightWrapper,
         })
@@ -16198,6 +16409,13 @@ function Library:CreateWindow(WindowInfo)
             Size = UDim2.new(1, 0, 0, 20 + WindowInfo.CornerRadius),
             Parent = MainFrame
         })
+
+        Library:RegisterSurface(
+            BottomBackground,
+            "Chrome",
+            0.04
+        )
+
         Library:MakeLine(MainFrame, {
             AnchorPoint = Vector2.new(0, 1),
             Position = UDim2.new(0, 0, 1, -20),
@@ -16269,6 +16487,13 @@ function Library:CreateWindow(WindowInfo)
             Size = UDim2.new(0, InitialLeftWidth, 1, -70),
             Parent = MainFrame,
         })
+
+        Library:RegisterSurface(
+            Tabs,
+            "Chrome",
+            0
+        )
+
         New("UIListLayout", {
             Parent = Tabs,
         })
@@ -16918,21 +17143,55 @@ function Library:CreateWindow(WindowInfo)
                 })
 
             local Pill =
-                New("Frame", {
-                    AnchorPoint = Vector2.new(0.5, 0),
-                    BackgroundColor3 = "MainColor",
-                    BackgroundTransparency = 0.16,
-                    Position = UDim2.new(0.5, 0, 0, 6),
-                    Size = UDim2.fromOffset(Width, PillHeight),
-                    Parent = TopHolder,
-                })
+                New(
+                    "Frame",
+                    {
+                        AnchorPoint =
+                            Vector2.new(
+                                0.5,
+                                0
+                            ),
+
+                        BackgroundColor3 =
+                            "MainColor",
+
+                        BackgroundTransparency =
+                            0.04,
+
+                        Position =
+                            UDim2.new(
+                                0.5,
+                                0,
+                                0,
+                                6
+                            ),
+
+                        Size =
+                            UDim2.fromOffset(
+                                Width,
+                                PillHeight
+                            ),
+
+                        Parent =
+                            TopHolder,
+                    }
+                )
 
             table.insert(
                 Library.Corners,
-                New("UICorner", {
-                    CornerRadius = UDim.new(1, 0),
-                    Parent = Pill,
-                })
+                New(
+                    "UICorner",
+                    {
+                        CornerRadius =
+                            UDim.new(
+                                0,
+                                Library.CornerRadius
+                            ),
+
+                        Parent =
+                            Pill,
+                    }
+                )
             )
 
             Library:AddOutline(
@@ -16981,8 +17240,17 @@ function Library:CreateWindow(WindowInfo)
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(1, 0),
-                        Parent = Button,
+                        CornerRadius =
+                            UDim.new(
+                                0,
+                                math.max(
+                                    2,
+                                    Library.CornerRadius - 1
+                                )
+                            ),
+
+                        Parent =
+                            Button,
                     })
                 )
 
@@ -17057,15 +17325,18 @@ function Library:CreateWindow(WindowInfo)
                         or Library.Scheme.MainColor
 
                     entry.Button.BackgroundTransparency =
-                        selected and 0
+                        selected
+                        and 0.82
                         or 1
 
                     entry.Button.TextTransparency =
-                        selected and 0
-                        or 0.38
+                        selected
+                        and 0
+                        or 0.22
 
                     entry.Stroke.Transparency =
-                        selected and 0.45
+                        selected
+                        and 0.08
                         or 1
 
                     Library.Registry[entry.Button].BackgroundColor3 =
@@ -17394,39 +17665,62 @@ function Library:CreateWindow(WindowInfo)
                 })
 
             local NavBar =
-                New("Frame", {
-                    BackgroundColor3 = "MainColor",
-                    BackgroundTransparency = 0.18,
-                    Position = UDim2.new(0, PaddingX, 0, 7),
-                    Size = UDim2.new(1, -PaddingX * 2, 0, BarHeight),
-                    Parent = TopHolder,
-                })
+                New(
+                    "Frame",
+                    {
+                        BackgroundColor3 =
+                            "MainColor",
+
+                        BackgroundTransparency =
+                            0.04,
+
+                        Position =
+                            UDim2.new(
+                                0,
+                                PaddingX,
+                                0,
+                                6
+                            ),
+
+                        Size =
+                            UDim2.new(
+                                1,
+                                -PaddingX * 2,
+                                0,
+                                BarHeight
+                            ),
+
+                        Parent =
+                            TopHolder,
+                    }
+                )
 
             table.insert(
                 Library.Corners,
-                New("UICorner", {
-                    CornerRadius = UDim.new(0, math.max(8, Library.CornerRadius + 2)),
-                    Parent = NavBar,
-                })
+                New(
+                    "UICorner",
+                    {
+                        CornerRadius =
+                            UDim.new(
+                                0,
+                                Library.CornerRadius
+                            ),
+
+                        Parent =
+                            NavBar,
+                    }
+                )
+            )
+
+            Library:RegisterSurface(
+                NavBar,
+                "Panel",
+                0.04
             )
 
             Library:AddOutline(
                 NavBar
             )
-
-            New("UIGradient", {
-                Rotation = 90,
-
-                Transparency =
-                    NumberSequence.new({
-                        NumberSequenceKeypoint.new(0, 0.02),
-                        NumberSequenceKeypoint.new(0.55, 0.10),
-                        NumberSequenceKeypoint.new(1, 0.22),
-                    }),
-
-                Parent =
-                    NavBar,
-            })
 
             local ButtonHolder =
                 New("Frame", {
@@ -17466,7 +17760,7 @@ function Library:CreateWindow(WindowInfo)
                     and blendColor(
                         baseColor,
                         accent,
-                        0.24
+                        0.18
                     )
                     or hovering
                     and blendColor(
@@ -17480,14 +17774,18 @@ function Library:CreateWindow(WindowInfo)
                     backgroundColor
 
                 entry.Button.BackgroundTransparency =
-                    selected and 0.08
-                    or hovering and 0.20
-                    or 0.42
+                    selected
+                    and 0.12
+                    or hovering
+                    and 0.30
+                    or 0.62
 
                 entry.Button.TextTransparency =
-                    selected and 0.02
-                    or hovering and 0.16
-                    or 0.36
+                    selected
+                    and 0
+                    or hovering
+                    and 0.08
+                    or 0.22
 
                 entry.Stroke.Color =
                     selected and accent
@@ -17495,9 +17793,11 @@ function Library:CreateWindow(WindowInfo)
                     or Library.Scheme.OutlineColor
 
                 entry.Stroke.Transparency =
-                    selected and 0.10
-                    or hovering and 0.32
-                    or 0.58
+                    selected
+                    and 0.08
+                    or hovering
+                    and 0.34
+                    or 0.72
 
                 entry.Underline.BackgroundColor3 =
                     accent
@@ -17515,8 +17815,7 @@ function Library:CreateWindow(WindowInfo)
                     accent
 
                 entry.Glow.BackgroundTransparency =
-                    selected and 0.78
-                    or 1
+                    1
 
                 Library.Registry[entry.Button] =
                     Library.Registry[entry.Button]
@@ -17543,11 +17842,11 @@ function Library:CreateWindow(WindowInfo)
                 local Button =
                     New("TextButton", {
                         BackgroundColor3 = "MainColor",
-                        BackgroundTransparency = 0.42,
+                        BackgroundTransparency = 0.62,
                         Size = UDim2.fromScale(1, 1),
                         Text = item.Text,
-                        TextSize = 15,
-                        TextTransparency = 0.36,
+                        TextSize = 14,
+                        TextTransparency = 0.22,
                         TextTruncate = Enum.TextTruncate.AtEnd,
                         Parent = ButtonHolder,
                     })
@@ -17555,7 +17854,14 @@ function Library:CreateWindow(WindowInfo)
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(0, math.max(7, Library.CornerRadius + 1)),
+                        CornerRadius =
+                            UDim.new(
+                                0,
+                                math.max(
+                                    2,
+                                    Library.CornerRadius - 1
+                                )
+                            ),
                         Parent = Button,
                     })
                 )
@@ -17798,23 +18104,75 @@ function Library:CreateWindow(WindowInfo)
 			local GroupboxList
 
             do
-                GroupboxHolder = New("Frame", {
-                    BackgroundColor3 = "MainColor",
-                    BackgroundTransparency = 0.16,
-                    ClipsDescendants = Info.Collapsible == true,
-                    Size = UDim2.fromScale(1, 0),
-                    Parent = BoxHolder,
-                })
+                GroupboxHolder =
+                    New(
+                        "Frame",
+                        {
+                            BackgroundColor3 =
+                                "MainColor",
+
+                            BackgroundTransparency =
+                                0.04,
+
+                            ClipsDescendants =
+                                Info.Collapsible == true,
+
+                            Size =
+                                UDim2.fromScale(
+                                    1,
+                                    0
+                                ),
+
+                            Parent =
+                                BoxHolder,
+                        }
+                    )
+
                 table.insert(
                     Library.Corners,
-                    New("UICorner", {
-                        CornerRadius = UDim.new(0, WindowInfo.CornerRadius + 1),
-                        Parent = GroupboxHolder,
-                    })
-                )
-                Library:AddOutline(GroupboxHolder)
+                    New(
+                        "UICorner",
+                        {
+                            CornerRadius =
+                                UDim.new(
+                                    0,
+                                    WindowInfo.CornerRadius
+                                ),
 
-                -- Premium card style: no hard header divider.
+                            Parent =
+                                GroupboxHolder,
+                        }
+                    )
+                )
+
+                Library:RegisterSurface(
+                    GroupboxHolder,
+                    "Groupbox",
+                    0.04
+                )
+
+                Library:AddOutline(
+                    GroupboxHolder
+                )
+
+                Library:MakeLine(
+                    GroupboxHolder,
+                    {
+                        Position =
+                            UDim2.fromOffset(
+                                0,
+                                29
+                            ),
+
+                        Size =
+                            UDim2.new(
+                                1,
+                                0,
+                                0,
+                                1
+                            ),
+                    }
+                )
 
                 local BoxIcon = Library:GetCustomIcon(Info.IconName)
                 if BoxIcon then
