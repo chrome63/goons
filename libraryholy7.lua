@@ -11594,6 +11594,12 @@ do
         local Callback =
             Info.Callback
 
+        local AutoJoinLayout =
+            tostring(
+                Info.Layout
+                or ""
+            ) == "AutoJoin"
+
         local Watchlist = {
             Rows = {},
             RowData = {},
@@ -11648,7 +11654,10 @@ do
                 Position = position,
                 Size = size,
                 Text = text,
-                TextSize = 12,
+                TextSize =
+                    AutoJoinLayout
+                    and 10
+                    or 12,
                 TextTransparency = 0.35,
                 TextXAlignment = align or Enum.TextXAlignment.Left,
                 TextTruncate = Enum.TextTruncate.AtEnd,
@@ -11656,43 +11665,79 @@ do
             })
         end
 
-        MakeHeader(
-            "Pet",
-            UDim2.fromOffset(10, 0),
-            UDim2.new(0.32, -10, 1, 0)
-        )
+        if AutoJoinLayout then
 
-        MakeHeader(
-            "Value",
-            UDim2.fromScale(0.32, 0),
-            UDim2.new(0.16, 0, 1, 0)
-        )
+            MakeHeader(
+                "PET",
+                UDim2.fromOffset(10, 0),
+                UDim2.new(0.32, -10, 1, 0)
+            )
 
-        MakeHeader(
-            "Size",
-            UDim2.fromScale(0.48, 0),
-            UDim2.new(0.18, 0, 1, 0)
-        )
+            MakeHeader(
+                "SIZE",
+                UDim2.fromScale(0.32, 0),
+                UDim2.new(0.15, 0, 1, 0)
+            )
 
-        MakeHeader(
-            "Variant",
-            UDim2.fromScale(0.66, 0),
-            UDim2.new(0.18, 0, 1, 0)
-        )
+            MakeHeader(
+                "VARIANT",
+                UDim2.fromScale(0.47, 0),
+                UDim2.new(0.21, 0, 1, 0)
+            )
 
-        MakeHeader(
-            "Amt",
-            UDim2.fromScale(0.84, 0),
-            UDim2.new(0.08, 0, 1, 0),
-            Enum.TextXAlignment.Center
-        )
+            MakeHeader(
+                "RARITY",
+                UDim2.fromScale(0.68, 0),
+                UDim2.new(0.16, 0, 1, 0)
+            )
 
-        MakeHeader(
-            "Pri",
-            UDim2.fromScale(0.92, 0),
-            UDim2.new(0.08, -8, 1, 0),
-            Enum.TextXAlignment.Center
-        )
+            MakeHeader(
+                "PRIORITY",
+                UDim2.fromScale(0.84, 0),
+                UDim2.new(0.16, -8, 1, 0),
+                Enum.TextXAlignment.Center
+            )
+
+        else
+
+            MakeHeader(
+                "Pet",
+                UDim2.fromOffset(10, 0),
+                UDim2.new(0.32, -10, 1, 0)
+            )
+
+            MakeHeader(
+                "Value",
+                UDim2.fromScale(0.32, 0),
+                UDim2.new(0.16, 0, 1, 0)
+            )
+
+            MakeHeader(
+                "Size",
+                UDim2.fromScale(0.48, 0),
+                UDim2.new(0.18, 0, 1, 0)
+            )
+
+            MakeHeader(
+                "Variant",
+                UDim2.fromScale(0.66, 0),
+                UDim2.new(0.18, 0, 1, 0)
+            )
+
+            MakeHeader(
+                "Amt",
+                UDim2.fromScale(0.84, 0),
+                UDim2.new(0.08, 0, 1, 0),
+                Enum.TextXAlignment.Center
+            )
+
+            MakeHeader(
+                "Pri",
+                UDim2.fromScale(0.92, 0),
+                UDim2.new(0.08, -8, 1, 0),
+                Enum.TextXAlignment.Center
+            )
+        end
 
         local RowsHolder = New("Frame", {
             BackgroundTransparency = 1,
@@ -11794,46 +11839,75 @@ do
                 Index = rowIndex,
                 Button = RowButton,
                 Marker = Marker,
+
                 Pet = MakeCell(
                     RowButton,
                     UDim2.fromOffset(10, 0),
                     UDim2.new(0.32, -10, 1, 0)
                 ),
+
                 Value = MakeCell(
                     RowButton,
                     UDim2.fromScale(0.32, 0),
-                    UDim2.new(0.16, 0, 1, 0)
+                    AutoJoinLayout
+                    and UDim2.new(0.15, 0, 1, 0)
+                    or UDim2.new(0.16, 0, 1, 0)
                 ),
+
                 Size = MakeCell(
                     RowButton,
-                    UDim2.fromScale(0.48, 0),
-                    UDim2.new(0.18, 0, 1, 0)
+                    AutoJoinLayout
+                    and UDim2.fromScale(0.47, 0)
+                    or UDim2.fromScale(0.48, 0),
+
+                    AutoJoinLayout
+                    and UDim2.new(0.21, 0, 1, 0)
+                    or UDim2.new(0.18, 0, 1, 0)
                 ),
+
                 Variant = MakeCell(
                     RowButton,
-                    UDim2.fromScale(0.66, 0),
-                    UDim2.new(0.18, 0, 1, 0)
+                    AutoJoinLayout
+                    and UDim2.fromScale(0.68, 0)
+                    or UDim2.fromScale(0.66, 0),
+
+                    AutoJoinLayout
+                    and UDim2.new(0.16, 0, 1, 0)
+                    or UDim2.new(0.18, 0, 1, 0)
                 ),
+
                 Amount = MakeCell(
                     RowButton,
                     UDim2.fromScale(0.84, 0),
-                    UDim2.new(0.08, 0, 1, 0),
+
+                    AutoJoinLayout
+                    and UDim2.new(0.16, -8, 1, 0)
+                    or UDim2.new(0.08, 0, 1, 0),
+
                     Enum.TextXAlignment.Center
                 ),
+
                 Priority = MakeCell(
                     RowButton,
                     UDim2.fromScale(0.92, 0),
                     UDim2.new(0.08, -8, 1, 0),
                     Enum.TextXAlignment.Center
                 ),
+
                 Data = nil,
             }
 
-            row.Value.TextColor3 =
-                Library.Scheme.AccentColor
+            row.Priority.Visible =
+                AutoJoinLayout ~= true
 
-            Library.Registry[row.Value].TextColor3 =
-                "AccentColor"
+            if AutoJoinLayout ~= true then
+
+                row.Value.TextColor3 =
+                    Library.Scheme.AccentColor
+
+                Library.Registry[row.Value].TextColor3 =
+                    "AccentColor"
+            end
 
             RowButton.MouseEnter:Connect(function()
 
@@ -11899,12 +11973,47 @@ do
 
                 if type(data) == "table" then
 
-                    SetText(row.Pet, data.Pet)
-                    SetText(row.Value, data.Value)
-                    SetText(row.Size, data.Size)
-                    SetText(row.Variant, data.Variant)
-                    SetText(row.Amount, data.Amount)
-                    SetText(row.Priority, data.Priority)
+                    if AutoJoinLayout then
+
+                        SetText(
+                            row.Pet,
+                            data.Pet
+                        )
+
+                        SetText(
+                            row.Value,
+                            data.Size
+                        )
+
+                        SetText(
+                            row.Size,
+                            data.Variant
+                        )
+
+                        SetText(
+                            row.Variant,
+                            data.Rarity
+                        )
+
+                        SetText(
+                            row.Amount,
+                            data.Priority
+                        )
+
+                        SetText(
+                            row.Priority,
+                            ""
+                        )
+
+                    else
+
+                        SetText(row.Pet, data.Pet)
+                        SetText(row.Value, data.Value)
+                        SetText(row.Size, data.Size)
+                        SetText(row.Variant, data.Variant)
+                        SetText(row.Amount, data.Amount)
+                        SetText(row.Priority, data.Priority)
+                    end
 
                 else
 
