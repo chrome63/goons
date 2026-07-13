@@ -232,7 +232,22 @@ local Library = {
     CornerRadiusDropdown = true,
 
     IsLightTheme = false,
-    ThemeName = "Obsidian Red",
+    ThemeName = "HOLY Red",
+
+    InterfaceTransparency = 0,
+    SurfaceRegistry = {},
+
+    Animations = {
+        ToggleWindow = false,
+        TabSwitch = true,
+        Groupbox = false,
+        Dropdown = false,
+        KeyPicker = false,
+    },
+
+    TabTransitionTime = 0.16,
+    TabSwipeOffset = 12,
+    TabSwipeFrom = "bottom",
 
     Scheme = {
         BackgroundColor = Color3.fromRGB(3, 3, 5),
@@ -241,6 +256,10 @@ local Library = {
         OutlineColor = Color3.fromRGB(42, 18, 23),
         FontColor = Color3.fromRGB(245, 245, 247),
         Font = Font.fromEnum(Enum.Font.GothamMedium),
+
+        SuccessColor = Color3.fromRGB(105, 229, 160),
+        WarningColor = Color3.fromRGB(245, 199, 100),
+        MutedColor = Color3.fromRGB(145, 151, 164),
 
         RedColor = Color3.fromRGB(255, 70, 88),
         DestructiveColor = Color3.fromRGB(210, 38, 54),
@@ -330,6 +349,19 @@ local Templates = {
         Resizable = true,
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
+
+        Animations = {
+            ToggleWindow = false,
+            TabSwitch = true,
+            Groupbox = false,
+            Dropdown = false,
+            KeyPicker = false,
+        },
+
+        TabTransitionTime = 0.16,
+        TabSwipeOffset = 12,
+        TabSwipeFrom = "bottom",
+
         CornerRadius = 6,
         NotifySide = "Right",
         ShowCustomCursor = true,
@@ -547,6 +579,411 @@ local function GetSchemeValue(Index)
     end
 
     return Library.Scheme[Index]
+end
+
+Library.ThemeOrder = {
+    "HOLY Red",
+    "Midnight",
+    "Amethyst",
+    "Emerald",
+    "Arctic",
+    "Graphite",
+}
+
+Library.Themes = {
+    ["HOLY Red"] = {
+        BackgroundColor = Color3.fromRGB(3, 3, 5),
+        MainColor = Color3.fromRGB(12, 13, 16),
+        AccentColor = Color3.fromRGB(232, 45, 67),
+        OutlineColor = Color3.fromRGB(42, 18, 23),
+        FontColor = Color3.fromRGB(245, 245, 247),
+
+        SuccessColor = Color3.fromRGB(105, 229, 160),
+        WarningColor = Color3.fromRGB(245, 199, 100),
+        MutedColor = Color3.fromRGB(145, 151, 164),
+
+        RedColor = Color3.fromRGB(255, 70, 88),
+        DestructiveColor = Color3.fromRGB(210, 38, 54),
+        DarkColor = Color3.fromRGB(0, 0, 0),
+        WhiteColor = Color3.fromRGB(255, 255, 255),
+
+        IsLight = false,
+    },
+
+    Midnight = {
+        BackgroundColor = Color3.fromRGB(3, 7, 15),
+        MainColor = Color3.fromRGB(9, 16, 29),
+        AccentColor = Color3.fromRGB(74, 137, 255),
+        OutlineColor = Color3.fromRGB(22, 45, 79),
+        FontColor = Color3.fromRGB(239, 244, 255),
+
+        SuccessColor = Color3.fromRGB(91, 220, 158),
+        WarningColor = Color3.fromRGB(244, 194, 92),
+        MutedColor = Color3.fromRGB(137, 151, 177),
+
+        RedColor = Color3.fromRGB(255, 86, 106),
+        DestructiveColor = Color3.fromRGB(211, 53, 72),
+        DarkColor = Color3.fromRGB(0, 2, 8),
+        WhiteColor = Color3.fromRGB(255, 255, 255),
+
+        IsLight = false,
+    },
+
+    Amethyst = {
+        BackgroundColor = Color3.fromRGB(7, 4, 13),
+        MainColor = Color3.fromRGB(18, 11, 29),
+        AccentColor = Color3.fromRGB(161, 92, 255),
+        OutlineColor = Color3.fromRGB(56, 31, 79),
+        FontColor = Color3.fromRGB(247, 241, 255),
+
+        SuccessColor = Color3.fromRGB(104, 226, 166),
+        WarningColor = Color3.fromRGB(249, 195, 103),
+        MutedColor = Color3.fromRGB(158, 145, 177),
+
+        RedColor = Color3.fromRGB(255, 83, 115),
+        DestructiveColor = Color3.fromRGB(207, 51, 79),
+        DarkColor = Color3.fromRGB(2, 0, 5),
+        WhiteColor = Color3.fromRGB(255, 255, 255),
+
+        IsLight = false,
+    },
+
+    Emerald = {
+        BackgroundColor = Color3.fromRGB(3, 10, 8),
+        MainColor = Color3.fromRGB(8, 23, 18),
+        AccentColor = Color3.fromRGB(43, 203, 132),
+        OutlineColor = Color3.fromRGB(21, 67, 50),
+        FontColor = Color3.fromRGB(237, 252, 246),
+
+        SuccessColor = Color3.fromRGB(73, 229, 151),
+        WarningColor = Color3.fromRGB(244, 197, 92),
+        MutedColor = Color3.fromRGB(133, 163, 151),
+
+        RedColor = Color3.fromRGB(255, 82, 103),
+        DestructiveColor = Color3.fromRGB(205, 49, 66),
+        DarkColor = Color3.fromRGB(0, 4, 3),
+        WhiteColor = Color3.fromRGB(255, 255, 255),
+
+        IsLight = false,
+    },
+
+    Arctic = {
+        BackgroundColor = Color3.fromRGB(2, 9, 13),
+        MainColor = Color3.fromRGB(7, 22, 29),
+        AccentColor = Color3.fromRGB(52, 205, 232),
+        OutlineColor = Color3.fromRGB(21, 65, 77),
+        FontColor = Color3.fromRGB(237, 251, 255),
+
+        SuccessColor = Color3.fromRGB(90, 227, 167),
+        WarningColor = Color3.fromRGB(247, 201, 103),
+        MutedColor = Color3.fromRGB(133, 160, 169),
+
+        RedColor = Color3.fromRGB(255, 84, 107),
+        DestructiveColor = Color3.fromRGB(207, 52, 72),
+        DarkColor = Color3.fromRGB(0, 3, 5),
+        WhiteColor = Color3.fromRGB(255, 255, 255),
+
+        IsLight = false,
+    },
+
+    Graphite = {
+        BackgroundColor = Color3.fromRGB(5, 5, 6),
+        MainColor = Color3.fromRGB(16, 16, 18),
+        AccentColor = Color3.fromRGB(183, 188, 198),
+        OutlineColor = Color3.fromRGB(49, 50, 55),
+        FontColor = Color3.fromRGB(246, 246, 248),
+
+        SuccessColor = Color3.fromRGB(104, 220, 154),
+        WarningColor = Color3.fromRGB(239, 191, 93),
+        MutedColor = Color3.fromRGB(145, 147, 154),
+
+        RedColor = Color3.fromRGB(255, 76, 96),
+        DestructiveColor = Color3.fromRGB(204, 47, 63),
+        DarkColor = Color3.fromRGB(0, 0, 0),
+        WhiteColor = Color3.fromRGB(255, 255, 255),
+
+        IsLight = false,
+    },
+}
+
+function Library:GetThemeNames()
+
+    local output = {}
+
+    for _, themeName in ipairs(
+        Library.ThemeOrder
+    ) do
+
+        output[#output + 1] =
+            themeName
+    end
+
+    return output
+end
+
+function Library:SetTheme(themeName)
+
+    themeName =
+        tostring(
+            themeName
+            or "HOLY Red"
+        )
+
+    if themeName == "Obsidian Red" then
+
+        themeName =
+            "HOLY Red"
+    end
+
+    local theme =
+        Library.Themes[
+            themeName
+        ]
+
+    if type(theme) ~= "table" then
+
+        themeName =
+            "HOLY Red"
+
+        theme =
+            Library.Themes[
+                themeName
+            ]
+    end
+
+    for key, value in pairs(theme) do
+
+        if key ~= "IsLight" then
+
+            Library.Scheme[key] =
+                value
+        end
+    end
+
+    Library.ThemeName =
+        themeName
+
+    Library.IsLightTheme =
+        theme.IsLight == true
+
+    if type(Library.UpdateColorsUsingRegistry) == "function" then
+
+        Library:UpdateColorsUsingRegistry()
+    end
+
+    return themeName
+end
+
+function Library:SetAnimations(
+    animations,
+    transitionTime,
+    swipeOffset,
+    swipeFrom
+)
+
+    animations =
+        type(animations) == "table"
+        and animations
+        or {}
+
+    for key, currentValue in pairs(
+        Library.Animations
+    ) do
+
+        if type(animations[key]) == "boolean" then
+
+            Library.Animations[key] =
+                animations[key]
+
+        else
+
+            Library.Animations[key] =
+                currentValue
+        end
+    end
+
+    if tonumber(transitionTime) then
+
+        Library.TabTransitionTime =
+            math.clamp(
+                tonumber(transitionTime),
+                0.05,
+                0.5
+            )
+    end
+
+    if tonumber(swipeOffset) then
+
+        Library.TabSwipeOffset =
+            math.clamp(
+                tonumber(swipeOffset),
+                0,
+                50
+            )
+    end
+
+    local allowedDirections = {
+        left = true,
+        right = true,
+        top = true,
+        bottom = true,
+    }
+
+    swipeFrom =
+        tostring(
+            swipeFrom
+            or Library.TabSwipeFrom
+        ):lower()
+
+    if allowedDirections[swipeFrom] == true then
+
+        Library.TabSwipeFrom =
+            swipeFrom
+    end
+
+    return Library.Animations
+end
+
+function Library:ApplyTransparencyToSurface(instance)
+
+    local data =
+        Library.SurfaceRegistry[
+            instance
+        ]
+
+    if type(data) ~= "table" then
+        return false
+    end
+
+    local success =
+        pcall(function()
+
+            local multiplier =
+                data.Role == "Control"
+                and 0.35
+                or 1
+
+            if (
+                tonumber(
+                    instance.ZIndex
+                )
+                or 0
+            ) >= 9000 then
+
+                multiplier =
+                    math.min(
+                        multiplier,
+                        0.35
+                    )
+            end
+
+            local amount =
+                math.clamp(
+                    tonumber(
+                        Library.InterfaceTransparency
+                    )
+                    or 0,
+                    0,
+                    70
+                )
+                / 100
+
+            local baseTransparency =
+                math.clamp(
+                    tonumber(
+                        data.BaseTransparency
+                    )
+                    or 0,
+                    0,
+                    1
+                )
+
+            local appliedAmount =
+                amount
+                * multiplier
+
+            instance.BackgroundTransparency =
+                1
+                - (
+                    (
+                        1
+                        - baseTransparency
+                    )
+                    * (
+                        1
+                        - appliedAmount
+                    )
+                )
+        end)
+
+    return success
+end
+
+function Library:RegisterSurface(
+    instance,
+    role,
+    baseTransparency
+)
+
+    if typeof(instance) ~= "Instance"
+    or instance:IsA("GuiObject") ~= true then
+
+        return false
+    end
+
+    Library.SurfaceRegistry[instance] = {
+        Role =
+            tostring(
+                role
+                or "Panel"
+            ),
+
+        BaseTransparency =
+            math.clamp(
+                tonumber(
+                    baseTransparency
+                )
+                or instance.BackgroundTransparency
+                or 0,
+                0,
+                1
+            ),
+    }
+
+    Library:ApplyTransparencyToSurface(
+        instance
+    )
+
+    return true
+end
+
+function Library:ApplyInterfaceTransparency()
+
+    for instance in pairs(
+        Library.SurfaceRegistry
+    ) do
+
+        Library:ApplyTransparencyToSurface(
+            instance
+        )
+    end
+
+    return true
+end
+
+function Library:SetInterfaceTransparency(value)
+
+    Library.InterfaceTransparency =
+        math.clamp(
+            tonumber(value)
+            or 0,
+            0,
+            70
+        )
+
+    Library:ApplyInterfaceTransparency()
+
+    return Library.InterfaceTransparency
 end
 
 --// Basic Functions \\--
@@ -1007,19 +1444,36 @@ function Library:AddToRegistry(Instance, Properties)
 end
 
 function Library:RemoveFromRegistry(Instance)
-    Library.Registry[Instance] = nil
+
+    Library.Registry[Instance] =
+        nil
+
+    Library.SurfaceRegistry[Instance] =
+        nil
 end
 
 function Library:UpdateColorsUsingRegistry()
-    for Instance, Properties in Library.Registry do
-        for Property, Index in Properties do
-            local SchemeValue = GetSchemeValue(Index)
 
-            if SchemeValue or typeof(Index) == "function" then
-                Instance[Property] = SchemeValue or Index()
+    for Instance, Properties in Library.Registry do
+
+        for Property, Index in Properties do
+
+            local SchemeValue =
+                GetSchemeValue(
+                    Index
+                )
+
+            if SchemeValue
+            or typeof(Index) == "function" then
+
+                Instance[Property] =
+                    SchemeValue
+                    or Index()
             end
         end
     end
+
+    Library:ApplyInterfaceTransparency()
 end
 
 function Library:SetDPIScale(DPIScale: number)
@@ -1164,10 +1618,51 @@ local function New(ClassName: string, Properties: { [string]: any }): any
     end
     FillInstance(Properties, Instance)
 
-    if Properties["Parent"] and not Properties["ZIndex"] then
+    if Properties["Parent"]
+    and not Properties["ZIndex"] then
+
         pcall(function()
-            Instance.ZIndex = Properties.Parent.ZIndex
+
+            Instance.ZIndex =
+                Properties.Parent.ZIndex
         end)
+    end
+
+    if Instance:IsA("GuiObject") then
+
+        local themeProperties =
+            Library.Registry[
+                Instance
+            ]
+
+        local backgroundSource =
+            type(themeProperties) == "table"
+            and themeProperties.BackgroundColor3
+            or nil
+
+        local surfaceRole =
+            nil
+
+        if backgroundSource == "BackgroundColor"
+        or typeof(backgroundSource) == "function" then
+
+            surfaceRole =
+                "Panel"
+
+        elseif backgroundSource == "MainColor" then
+
+            surfaceRole =
+                "Control"
+        end
+
+        if surfaceRole ~= nil then
+
+            Library:RegisterSurface(
+                Instance,
+                surfaceRole,
+                Instance.BackgroundTransparency
+            )
+        end
     end
 
     return Instance
@@ -13961,8 +14456,18 @@ function Library:CreateWindow(WindowInfo)
     Library:SetNotifySide(WindowInfo.NotifySide)
     Library.ShowCustomCursor = WindowInfo.ShowCustomCursor
     Library.Scheme.Font = WindowInfo.Font
-    Library.ToggleKeybind = WindowInfo.ToggleKeybind
-    Library.GlobalSearch = WindowInfo.GlobalSearch
+    Library.ToggleKeybind =
+        WindowInfo.ToggleKeybind
+
+    Library.GlobalSearch =
+        WindowInfo.GlobalSearch
+
+    Library:SetAnimations(
+        WindowInfo.Animations,
+        WindowInfo.TabTransitionTime,
+        WindowInfo.TabSwipeOffset,
+        WindowInfo.TabSwipeFrom
+    )
 
     local IsDefaultSearchbarSize = WindowInfo.SearchbarSize == UDim2.fromScale(1, 1)
     local MainFrame
@@ -14494,6 +14999,7 @@ function Library:CreateWindow(WindowInfo)
         local TabContainer
         local TabLeft
         local TabRight
+        local TabTransitionTween
 
         Icon = Library:GetCustomIcon(Icon)
         do
@@ -14564,8 +15070,10 @@ function Library:CreateWindow(WindowInfo)
             })
 
             --// Tab Container \\--
-            TabContainer = New("Frame", {
+            TabContainer = New("CanvasGroup", {
                 BackgroundTransparency = 1,
+                GroupTransparency = 0,
+                Position = UDim2.fromOffset(0, 0),
                 Size = UDim2.fromScale(1, 1),
                 Visible = false,
                 Parent = Container,
@@ -16301,43 +16809,233 @@ end
                     DependencyBoxes = {},
                 }
 
-                function Tab:Show()
-                    if Tabbox.ActiveTab then
-                        Tabbox.ActiveTab:Hide()
-                    end
+        function Tab:Show()
 
-                    Button.BackgroundTransparency = 1
-                    BottomCover.BackgroundTransparency = 1
-                    LeftCover.BackgroundTransparency = 1
-                    RightCover.BackgroundTransparency = 1
+            if Library.ActiveTab == Tab then
+                return
+            end
 
-                    ButtonLabel.TextTransparency = 0
-                    if ButtonIcon then
-                        ButtonIcon.ImageTransparency = 0
-                    end
-                    Line.Visible = false
+            local hadActiveTab =
+                Library.ActiveTab ~= nil
 
-                    Container.Visible = true
+            if Library.ActiveTab then
 
-                    Tabbox.ActiveTab = Tab
-                    Tab:Resize()
+                Library.ActiveTab:Hide()
+            end
+
+            TweenService:Create(
+                TabButton,
+                Library.TweenInfo,
+                {
+                    BackgroundTransparency = 0.18,
+                }
+            ):Play()
+
+            TweenService:Create(
+                TabActiveBar,
+                Library.TweenInfo,
+                {
+                    BackgroundTransparency = 0,
+                }
+            ):Play()
+
+            TweenService:Create(
+                TabLabel,
+                Library.TweenInfo,
+                {
+                    TextTransparency = 0,
+                }
+            ):Play()
+
+            if TabIcon then
+
+                TweenService:Create(
+                    TabIcon,
+                    Library.TweenInfo,
+                    {
+                        ImageTransparency = 0,
+                    }
+                ):Play()
+            end
+
+            if Description then
+
+                Window:ShowTabInfo(
+                    Name,
+                    Description
+                )
+            end
+
+            if TabTransitionTween then
+
+                TabTransitionTween:Cancel()
+
+                TabTransitionTween =
+                    nil
+            end
+
+            local animate =
+                hadActiveTab == true
+                and Library.Animations.TabSwitch == true
+                and Library.TabTransitionTime > 0
+
+            if animate == true then
+
+                local offset =
+                    Library.TabSwipeOffset
+
+                local startPosition =
+                    UDim2.fromOffset(
+                        0,
+                        offset
+                    )
+
+                if Library.TabSwipeFrom == "top" then
+
+                    startPosition =
+                        UDim2.fromOffset(
+                            0,
+                            -offset
+                        )
+
+                elseif Library.TabSwipeFrom == "left" then
+
+                    startPosition =
+                        UDim2.fromOffset(
+                            -offset,
+                            0
+                        )
+
+                elseif Library.TabSwipeFrom == "right" then
+
+                    startPosition =
+                        UDim2.fromOffset(
+                            offset,
+                            0
+                        )
                 end
 
-                function Tab:Hide()
-                    Button.BackgroundTransparency = 0
-                    BottomCover.BackgroundTransparency = 0
-                    LeftCover.BackgroundTransparency = 0
-                    RightCover.BackgroundTransparency = 0
+                TabContainer.Position =
+                    startPosition
 
-                    ButtonLabel.TextTransparency = 0.5
-                    if ButtonIcon then
-                        ButtonIcon.ImageTransparency = 0.5
-                    end
-                    Line.Visible = true
-                    Container.Visible = false
+                TabContainer.GroupTransparency =
+                    1
 
-                    Tabbox.ActiveTab = nil
-                end
+                TabContainer.Visible =
+                    true
+
+                TabTransitionTween =
+                    TweenService:Create(
+                        TabContainer,
+                        TweenInfo.new(
+                            Library.TabTransitionTime,
+                            Enum.EasingStyle.Quad,
+                            Enum.EasingDirection.Out
+                        ),
+                        {
+                            Position =
+                                UDim2.fromOffset(
+                                    0,
+                                    0
+                                ),
+
+                            GroupTransparency =
+                                0,
+                        }
+                    )
+
+                TabTransitionTween:Play()
+
+            else
+
+                TabContainer.Position =
+                    UDim2.fromOffset(
+                        0,
+                        0
+                    )
+
+                TabContainer.GroupTransparency =
+                    0
+
+                TabContainer.Visible =
+                    true
+            end
+
+            Tab:RefreshSides()
+
+            Library.ActiveTab =
+                Tab
+
+            if Library.Searching then
+
+                Library:UpdateSearch(
+                    Library.SearchText
+                )
+            end
+        end
+
+        function Tab:Hide()
+
+            if TabTransitionTween then
+
+                TabTransitionTween:Cancel()
+
+                TabTransitionTween =
+                    nil
+            end
+
+            TweenService:Create(
+                TabButton,
+                Library.TweenInfo,
+                {
+                    BackgroundTransparency = 1,
+                }
+            ):Play()
+
+            TweenService:Create(
+                TabActiveBar,
+                Library.TweenInfo,
+                {
+                    BackgroundTransparency = 1,
+                }
+            ):Play()
+
+            TweenService:Create(
+                TabLabel,
+                Library.TweenInfo,
+                {
+                    TextTransparency = 0.5,
+                }
+            ):Play()
+
+            if TabIcon then
+
+                TweenService:Create(
+                    TabIcon,
+                    Library.TweenInfo,
+                    {
+                        ImageTransparency = 0.5,
+                    }
+                ):Play()
+            end
+
+            TabContainer.Visible =
+                false
+
+            TabContainer.Position =
+                UDim2.fromOffset(
+                    0,
+                    0
+                )
+
+            TabContainer.GroupTransparency =
+                0
+
+            Window:HideTabInfo()
+
+            Library.ActiveTab =
+                nil
+        end
 
                 function Tab:Resize()
                     if Tabbox.ActiveTab ~= Tab then
