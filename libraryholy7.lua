@@ -3569,6 +3569,9 @@ function Library:CreateServerFinderHUD(Info)
         Minimized = false,
         FiltersVisible = false,
 
+        SimpleMode =
+            Info.SimpleMode == true,
+
         Scale =
             math.clamp(
                 tonumber(Info.Scale)
@@ -4297,6 +4300,7 @@ function Library:CreateServerFinderHUD(Info)
         BackgroundTransparency = 1,
         Position = UDim2.fromOffset(10, 64),
         Size = UDim2.new(1, -20, 0, 24),
+        Visible = Hud.SimpleMode ~= true,
         ZIndex = Body.ZIndex + 1,
         Parent = Body,
     })
@@ -4395,8 +4399,15 @@ function Library:CreateServerFinderHUD(Info)
         TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
         ScrollBarImageColor3 = "OutlineColor",
         ScrollBarThickness = 3,
-        Position = UDim2.fromOffset(10, 97),
-        Size = UDim2.new(1, -20, 1, -107),
+        Position =
+            Hud.SimpleMode
+            and UDim2.fromOffset(10, 64)
+            or UDim2.fromOffset(10, 97),
+
+        Size =
+            Hud.SimpleMode
+            and UDim2.new(1, -20, 1, -74)
+            or UDim2.new(1, -20, 1, -107),
         ZIndex = Body.ZIndex + 1,
         Parent = Body,
     })
@@ -7191,6 +7202,13 @@ function Library:CreateServerFinderHUD(Info)
     end
 
     function Hud:OpenFilters()
+
+        if Hud.SimpleMode == true then
+
+            Hud:CloseFilters()
+
+            return
+        end
 
         if Hud.Visible ~= true then
             return
