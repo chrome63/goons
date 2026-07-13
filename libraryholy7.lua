@@ -7625,8 +7625,29 @@ function Library:AddContextMenu(
     return Table
 end
 
+function Library:CloseCurrentMenu()
+
+    if CurrentMenu then
+
+        CurrentMenu:Close()
+
+        return true
+    end
+
+    return false
+end
+
 Library:GiveSignal(UserInputService.InputBegan:Connect(function(Input: InputObject)
+
     if Library.Unloaded then
+        return
+    end
+
+    if CurrentMenu
+    and Input.KeyCode == Enum.KeyCode.Escape then
+
+        CurrentMenu:Close()
+
         return
     end
 
@@ -12664,6 +12685,1429 @@ do
         return Slider
     end
 
+        function Funcs:AddThemePicker(Idx, Info)
+
+        Info =
+            Library:Validate(
+                Info,
+                {
+                    Text = "Theme",
+                    Values = {},
+                    Default = nil,
+
+                    Tooltip = nil,
+                    DisabledTooltip = nil,
+
+                    Callback = function()
+                    end,
+
+                    Changed = function()
+                    end,
+
+                    Disabled = false,
+                    Visible = true,
+
+                    Animate = true,
+                    PopupTransparency = 0.08,
+                }
+            )
+
+        local Groupbox =
+            self
+
+        local Container =
+            Groupbox.Container
+
+        local ThemePicker = {
+            Text =
+                tostring(
+                    Info.Text
+                    or "Theme"
+                ),
+
+            Values =
+                Info.Values,
+
+            Value =
+                nil,
+
+            Tooltip =
+                Info.Tooltip,
+
+            DisabledTooltip =
+                Info.DisabledTooltip,
+
+            TooltipTable =
+                nil,
+
+            Callback =
+                Info.Callback,
+
+            Changed =
+                Info.Changed,
+
+            Disabled =
+                Info.Disabled == true,
+
+            Visible =
+                Info.Visible ~= false,
+
+            Type =
+                "Dropdown",
+
+            SpecialType =
+                "ThemePicker",
+        }
+
+        local requestedDefault =
+            tostring(
+                Info.Default
+                or ""
+            )
+
+        if table.find(
+            ThemePicker.Values,
+            requestedDefault
+        ) then
+
+            ThemePicker.Value =
+                requestedDefault
+
+        else
+
+            ThemePicker.Value =
+                ThemePicker.Values[1]
+        end
+
+        local Holder =
+            New(
+                "Frame",
+                {
+                    BackgroundTransparency = 1,
+
+                    Size =
+                        UDim2.new(
+                            1,
+                            0,
+                            0,
+                            39
+                        ),
+
+                    Visible =
+                        ThemePicker.Visible,
+
+                    Parent =
+                        Container,
+                }
+            )
+
+        local ControlZIndex =
+            (
+                tonumber(
+                    Holder.ZIndex
+                )
+                or 1
+            )
+            + 1
+
+        local ForegroundZIndex =
+            ControlZIndex
+            + 1
+
+        local Label =
+            New(
+                "TextLabel",
+                {
+                    BackgroundTransparency = 1,
+
+                    Size =
+                        UDim2.new(
+                            1,
+                            0,
+                            0,
+                            14
+                        ),
+
+                    Text =
+                        ThemePicker.Text,
+
+                    TextSize =
+                        14,
+
+                    TextXAlignment =
+                        Enum.TextXAlignment.Left,
+
+                    ZIndex =
+                        ControlZIndex,
+
+                    Parent =
+                        Holder,
+                }
+            )
+
+        local DisplayContainer =
+            New(
+                "TextButton",
+                {
+                    Active =
+                        not ThemePicker.Disabled,
+
+                    AnchorPoint =
+                        Vector2.new(
+                            0,
+                            1
+                        ),
+
+                    BackgroundColor3 =
+                        "MainColor",
+
+                    Position =
+                        UDim2.fromScale(
+                            0,
+                            1
+                        ),
+
+                    Size =
+                        UDim2.new(
+                            1,
+                            0,
+                            0,
+                            24
+                        ),
+
+                    Text =
+                        "",
+
+                    ZIndex =
+                        ControlZIndex,
+
+                    Parent =
+                        Holder,
+                }
+            )
+
+        local DisplayStroke =
+            New(
+                "UIStroke",
+                {
+                    Color =
+                        "OutlineColor",
+
+                    Thickness =
+                        1,
+
+                    Parent =
+                        DisplayContainer,
+                }
+            )
+
+        table.insert(
+            Library.Corners,
+            New(
+                "UICorner",
+                {
+                    CornerRadius =
+                        UDim.new(
+                            0,
+                            Library.CornerRadius / 2
+                        ),
+
+                    Parent =
+                        DisplayContainer,
+                }
+            )
+        )
+
+        local DisplaySwatch =
+            New(
+                "Frame",
+                {
+                    AnchorPoint =
+                        Vector2.new(
+                            0,
+                            0.5
+                        ),
+
+                    BackgroundColor3 =
+                        Library.Scheme.AccentColor,
+
+                    Position =
+                        UDim2.fromOffset(
+                            8,
+                            12
+                        ),
+
+                    Size =
+                        UDim2.fromOffset(
+                            11,
+                            11
+                        ),
+
+                    ZIndex =
+                        ForegroundZIndex,
+
+                    Parent =
+                        DisplayContainer,
+                }
+            )
+
+        table.insert(
+            Library.Corners,
+            New(
+                "UICorner",
+                {
+                    CornerRadius =
+                        UDim.new(
+                            1,
+                            0
+                        ),
+
+                    Parent =
+                        DisplaySwatch,
+                }
+            )
+        )
+
+        local DisplaySwatchStroke =
+            New(
+                "UIStroke",
+                {
+                    Color =
+                        "FontColor",
+
+                    Transparency =
+                        0.72,
+
+                    Thickness =
+                        1,
+
+                    Parent =
+                        DisplaySwatch,
+                }
+            )
+
+        local ValueLabel =
+            New(
+                "TextLabel",
+                {
+                    BackgroundTransparency = 1,
+
+                    Position =
+                        UDim2.fromOffset(
+                            27,
+                            0
+                        ),
+
+                    Size =
+                        UDim2.new(
+                            1,
+                            -51,
+                            1,
+                            0
+                        ),
+
+                    Text =
+                        "",
+
+                    TextSize =
+                        14,
+
+                    TextXAlignment =
+                        Enum.TextXAlignment.Left,
+
+                    TextTruncate =
+                        Enum.TextTruncate.AtEnd,
+
+                    ZIndex =
+                        ForegroundZIndex,
+
+                    Parent =
+                        DisplayContainer,
+                }
+            )
+
+        local ArrowImage =
+            New(
+                "ImageLabel",
+                {
+                    AnchorPoint =
+                        Vector2.new(
+                            1,
+                            0.5
+                        ),
+
+                    BackgroundTransparency = 1,
+
+                    Image =
+                        ArrowIcon
+                        and ArrowIcon.Url
+                        or "",
+
+                    ImageColor3 =
+                        "FontColor",
+
+                    ImageRectOffset =
+                        ArrowIcon
+                        and ArrowIcon.ImageRectOffset
+                        or Vector2.zero,
+
+                    ImageRectSize =
+                        ArrowIcon
+                        and ArrowIcon.ImageRectSize
+                        or Vector2.zero,
+
+                    ImageTransparency =
+                        0.45,
+
+                    Position =
+                        UDim2.new(
+                            1,
+                            -6,
+                            0.5,
+                            0
+                        ),
+
+                    Size =
+                        UDim2.fromOffset(
+                            16,
+                            16
+                        ),
+
+                    ZIndex =
+                        ForegroundZIndex,
+
+                    Parent =
+                        DisplayContainer,
+                }
+            )
+
+        local function GetMenuHeight()
+
+            local itemCount =
+                math.max(
+                    #ThemePicker.Values,
+                    1
+                )
+
+            local rowCount =
+                math.ceil(
+                    itemCount / 2
+                )
+
+            return 16
+                + rowCount * 30
+                + math.max(
+                    rowCount - 1,
+                    0
+                ) * 6
+        end
+
+        local function GetMenuOffset()
+
+            local dpiScale =
+                math.max(
+                    tonumber(
+                        Library.DPIScale
+                    )
+                    or 1,
+                    0.01
+                )
+
+            local popupHeight =
+                GetMenuHeight()
+                * dpiScale
+
+            local displayPosition =
+                DisplayContainer.AbsolutePosition
+
+            local displaySize =
+                DisplayContainer.AbsoluteSize
+
+            local belowPosition =
+                displayPosition.Y
+                + displaySize.Y
+                + 4
+
+            local camera =
+                workspace.CurrentCamera
+
+            local viewportHeight =
+                camera
+                and camera.ViewportSize.Y
+                or 720
+
+            local canOpenAbove =
+                displayPosition.Y
+                - popupHeight
+                - 4
+                >= 8
+
+            local shouldOpenAbove =
+                belowPosition
+                + popupHeight
+                > viewportHeight
+                - 8
+
+            if shouldOpenAbove
+            and canOpenAbove then
+
+                return {
+                    0.5,
+                    -popupHeight - 4,
+                }
+            end
+
+            return {
+                0.5,
+                displaySize.Y + 4,
+            }
+        end
+
+        local MenuContent =
+            nil
+
+        local MenuTween =
+            nil
+
+        local ContentTween =
+            nil
+
+        local PopupTransparency =
+            math.clamp(
+                tonumber(
+                    Info.PopupTransparency
+                )
+                or 0.08,
+                0,
+                0.15
+            )
+
+        local MenuTable
+
+        MenuTable =
+            Library:AddContextMenu(
+                DisplayContainer,
+
+                function()
+
+                    local dpiScale =
+                        math.max(
+                            tonumber(
+                                Library.DPIScale
+                            )
+                            or 1,
+                            0.01
+                        )
+
+                    return UDim2.fromOffset(
+                        (
+                            DisplayContainer.AbsoluteSize.X
+                            / dpiScale
+                        )
+                        + 1,
+                        GetMenuHeight()
+                    )
+                end,
+
+                GetMenuOffset,
+
+                nil,
+
+                function(active)
+
+                    if MenuTween then
+
+                        MenuTween:Cancel()
+
+                        MenuTween =
+                            nil
+                    end
+
+                    if ContentTween then
+
+                        ContentTween:Cancel()
+
+                        ContentTween =
+                            nil
+                    end
+
+                    ArrowImage.Rotation =
+                        active
+                        and 180
+                        or 0
+
+                    ArrowImage.ImageTransparency =
+                        active
+                        and 0
+                        or 0.45
+
+                    DisplayStroke.Color =
+                        active
+                        and Library.Scheme.AccentColor
+                        or Library.Scheme.OutlineColor
+
+                    Library.Registry[
+                        DisplayStroke
+                    ].Color =
+                        active
+                        and "AccentColor"
+                        or "OutlineColor"
+
+                    if not MenuContent then
+                        return
+                    end
+
+                    if active then
+
+                        if Info.Animate ~= false then
+
+                            MenuTable.Menu.BackgroundTransparency =
+                                1
+
+                            MenuContent.GroupTransparency =
+                                1
+
+                            MenuContent.Position =
+                                UDim2.fromOffset(
+                                    0,
+                                    6
+                                )
+
+                            MenuTween =
+                                TweenService:Create(
+                                    MenuTable.Menu,
+                                    TweenInfo.new(
+                                        0.12,
+                                        Enum.EasingStyle.Quad,
+                                        Enum.EasingDirection.Out
+                                    ),
+                                    {
+                                        BackgroundTransparency =
+                                            PopupTransparency,
+                                    }
+                                )
+
+                            ContentTween =
+                                TweenService:Create(
+                                    MenuContent,
+                                    TweenInfo.new(
+                                        0.12,
+                                        Enum.EasingStyle.Quad,
+                                        Enum.EasingDirection.Out
+                                    ),
+                                    {
+                                        GroupTransparency =
+                                            0,
+
+                                        Position =
+                                            UDim2.fromOffset(
+                                                0,
+                                                0
+                                            ),
+                                    }
+                                )
+
+                            MenuTween:Play()
+                            ContentTween:Play()
+
+                        else
+
+                            MenuTable.Menu.BackgroundTransparency =
+                                PopupTransparency
+
+                            MenuContent.GroupTransparency =
+                                0
+
+                            MenuContent.Position =
+                                UDim2.fromOffset(
+                                    0,
+                                    0
+                                )
+                        end
+
+                    else
+
+                        MenuTable.Menu.BackgroundTransparency =
+                            PopupTransparency
+
+                        MenuContent.GroupTransparency =
+                            0
+
+                        MenuContent.Position =
+                            UDim2.fromOffset(
+                                0,
+                                0
+                            )
+                    end
+                end
+            )
+
+        ThemePicker.Menu =
+            MenuTable
+
+        MenuTable.Menu.Active =
+            true
+
+        MenuTable.Menu.ClipsDescendants =
+            true
+
+        Library.SurfaceRegistry[
+            MenuTable.Menu
+        ] =
+            nil
+
+        MenuTable.Menu.BackgroundTransparency =
+            PopupTransparency
+
+        MenuContent =
+            New(
+                "CanvasGroup",
+                {
+                    Active =
+                        true,
+
+                    BackgroundTransparency =
+                        1,
+
+                    GroupTransparency =
+                        0,
+
+                    Size =
+                        UDim2.fromScale(
+                            1,
+                            1
+                        ),
+
+                    Parent =
+                        MenuTable.Menu,
+                }
+            )
+
+        New(
+            "UIPadding",
+            {
+                PaddingBottom =
+                    UDim.new(
+                        0,
+                        8
+                    ),
+
+                PaddingLeft =
+                    UDim.new(
+                        0,
+                        8
+                    ),
+
+                PaddingRight =
+                    UDim.new(
+                        0,
+                        8
+                    ),
+
+                PaddingTop =
+                    UDim.new(
+                        0,
+                        8
+                    ),
+
+                Parent =
+                    MenuContent,
+            }
+        )
+
+        New(
+            "UIGridLayout",
+            {
+                CellPadding =
+                    UDim2.fromOffset(
+                        6,
+                        6
+                    ),
+
+                CellSize =
+                    UDim2.new(
+                        0.5,
+                        -11,
+                        0,
+                        30
+                    ),
+
+                FillDirection =
+                    Enum.FillDirection.Horizontal,
+
+                FillDirectionMaxCells =
+                    2,
+
+                HorizontalAlignment =
+                    Enum.HorizontalAlignment.Left,
+
+                SortOrder =
+                    Enum.SortOrder.LayoutOrder,
+
+                VerticalAlignment =
+                    Enum.VerticalAlignment.Top,
+
+                Parent =
+                    MenuContent,
+            }
+        )
+
+        local Buttons = {}
+
+        local function UpdateButton(
+            value,
+            data
+        )
+
+            local selected =
+                ThemePicker.Value
+                == value
+
+            local selectedBackground =
+                function()
+
+                    return Library:GetBetterColor(
+                        Library.Scheme.MainColor,
+                        5
+                    )
+                end
+
+            data.Card.BackgroundColor3 =
+                selected
+                and selectedBackground()
+                or Library.Scheme.MainColor
+
+            Library.Registry[
+                data.Card
+            ].BackgroundColor3 =
+                selected
+                and selectedBackground
+                or "MainColor"
+
+            data.Stroke.Color =
+                selected
+                and Library.Scheme.AccentColor
+                or Library.Scheme.OutlineColor
+
+            Library.Registry[
+                data.Stroke
+            ].Color =
+                selected
+                and "AccentColor"
+                or "OutlineColor"
+
+            data.NameLabel.TextTransparency =
+                ThemePicker.Disabled
+                and 0.75
+                or selected
+                and 0
+                or 0.16
+
+            data.CheckLabel.Visible =
+                selected
+
+            data.Card.Active =
+                not ThemePicker.Disabled
+        end
+
+        local function UpdateButtons()
+
+            for value, data in pairs(
+                Buttons
+            ) do
+
+                UpdateButton(
+                    value,
+                    data
+                )
+            end
+        end
+
+        local function BuildButtons()
+
+            for _, data in pairs(
+                Buttons
+            ) do
+
+                pcall(function()
+
+                    data.Card:Destroy()
+                end)
+            end
+
+            table.clear(
+                Buttons
+            )
+
+            for index, value in ipairs(
+                ThemePicker.Values
+            ) do
+
+                value =
+                    tostring(
+                        value
+                    )
+
+                local theme =
+                    Library.Themes[
+                        value
+                    ]
+
+                local accentColor =
+                    type(theme) == "table"
+                    and theme.AccentColor
+                    or Library.Scheme.AccentColor
+
+                local Card =
+                    New(
+                        "TextButton",
+                        {
+                            Active =
+                                not ThemePicker.Disabled,
+
+                            BackgroundColor3 =
+                                "MainColor",
+
+                            BackgroundTransparency =
+                                0.02,
+
+                            LayoutOrder =
+                                index,
+
+                            Text =
+                                "",
+
+                            Parent =
+                                MenuContent,
+                        }
+                    )
+
+                table.insert(
+                    Library.Corners,
+                    New(
+                        "UICorner",
+                        {
+                            CornerRadius =
+                                UDim.new(
+                                    0,
+                                    Library.CornerRadius / 2
+                                ),
+
+                            Parent =
+                                Card,
+                        }
+                    )
+                )
+
+                local CardStroke =
+                    New(
+                        "UIStroke",
+                        {
+                            Color =
+                                "OutlineColor",
+
+                            Thickness =
+                                1,
+
+                            Parent =
+                                Card,
+                        }
+                    )
+
+                local Swatch =
+                    New(
+                        "Frame",
+                        {
+                            AnchorPoint =
+                                Vector2.new(
+                                    0,
+                                    0.5
+                                ),
+
+                            BackgroundColor3 =
+                                accentColor,
+
+                            Position =
+                                UDim2.new(
+                                    0,
+                                    8,
+                                    0.5,
+                                    0
+                                ),
+
+                            Size =
+                                UDim2.fromOffset(
+                                    10,
+                                    10
+                                ),
+
+                            Parent =
+                                Card,
+                        }
+                    )
+
+                table.insert(
+                    Library.Corners,
+                    New(
+                        "UICorner",
+                        {
+                            CornerRadius =
+                                UDim.new(
+                                    1,
+                                    0
+                                ),
+
+                            Parent =
+                                Swatch,
+                        }
+                    )
+                )
+
+                New(
+                    "UIStroke",
+                    {
+                        Color =
+                            "FontColor",
+
+                        Transparency =
+                            0.72,
+
+                        Thickness =
+                            1,
+
+                        Parent =
+                            Swatch,
+                    }
+                )
+
+                local NameLabel =
+                    New(
+                        "TextLabel",
+                        {
+                            BackgroundTransparency =
+                                1,
+
+                            Position =
+                                UDim2.fromOffset(
+                                    25,
+                                    0
+                                ),
+
+                            Size =
+                                UDim2.new(
+                                    1,
+                                    -47,
+                                    1,
+                                    0
+                                ),
+
+                            Text =
+                                value,
+
+                            TextSize =
+                                13,
+
+                            TextTruncate =
+                                Enum.TextTruncate.AtEnd,
+
+                            TextXAlignment =
+                                Enum.TextXAlignment.Left,
+
+                            Parent =
+                                Card,
+                        }
+                    )
+
+                local CheckLabel =
+                    New(
+                        "TextLabel",
+                        {
+                            AnchorPoint =
+                                Vector2.new(
+                                    1,
+                                    0
+                                ),
+
+                            BackgroundTransparency =
+                                1,
+
+                            Position =
+                                UDim2.new(
+                                    1,
+                                    -7,
+                                    0,
+                                    0
+                                ),
+
+                            Size =
+                                UDim2.fromOffset(
+                                    14,
+                                    30
+                                ),
+
+                            Text =
+                                "✓",
+
+                            TextColor3 =
+                                "AccentColor",
+
+                            TextSize =
+                                14,
+
+                            Visible =
+                                false,
+
+                            Parent =
+                                Card,
+                        }
+                    )
+
+                local buttonData = {
+                    Card =
+                        Card,
+
+                    Stroke =
+                        CardStroke,
+
+                    NameLabel =
+                        NameLabel,
+
+                    CheckLabel =
+                        CheckLabel,
+                }
+
+                Buttons[
+                    value
+                ] =
+                    buttonData
+
+                Card.MouseEnter:Connect(function()
+
+                    if ThemePicker.Disabled
+                    or ThemePicker.Value == value then
+
+                        return
+                    end
+
+                    TweenService:Create(
+                        Card,
+                        Library.TweenInfo,
+                        {
+                            BackgroundColor3 =
+                                Library:GetBetterColor(
+                                    Library.Scheme.MainColor,
+                                    3
+                                ),
+                        }
+                    ):Play()
+                end)
+
+                Card.MouseLeave:Connect(function()
+
+                    UpdateButton(
+                        value,
+                        buttonData
+                    )
+                end)
+
+                Card.MouseButton1Click:Connect(function()
+
+                    if ThemePicker.Disabled then
+                        return
+                    end
+
+                    ThemePicker:SetValue(
+                        value
+                    )
+
+                    MenuTable:Close()
+                end)
+            end
+
+            UpdateButtons()
+        end
+
+        function ThemePicker:RecalculateListSize()
+
+            MenuTable:SetSize(function()
+
+                local dpiScale =
+                    math.max(
+                        tonumber(
+                            Library.DPIScale
+                        )
+                        or 1,
+                        0.01
+                    )
+
+                return UDim2.fromOffset(
+                    (
+                        DisplayContainer.AbsoluteSize.X
+                        / dpiScale
+                    )
+                    + 1,
+                    GetMenuHeight()
+                )
+            end)
+        end
+
+        function ThemePicker:Display()
+
+            local theme =
+                Library.Themes[
+                    ThemePicker.Value
+                ]
+
+            ValueLabel.Text =
+                tostring(
+                    ThemePicker.Value
+                    or "Select theme"
+                )
+
+            if type(theme) == "table"
+            and typeof(theme.AccentColor) == "Color3" then
+
+                DisplaySwatch.BackgroundColor3 =
+                    theme.AccentColor
+
+                DisplaySwatch.BackgroundTransparency =
+                    0
+
+            else
+
+                DisplaySwatch.BackgroundColor3 =
+                    Library.Scheme.AccentColor
+
+                DisplaySwatch.BackgroundTransparency =
+                    1
+            end
+
+            Label.TextTransparency =
+                ThemePicker.Disabled
+                and 0.75
+                or 0
+
+            ValueLabel.TextTransparency =
+                ThemePicker.Disabled
+                and 0.75
+                or 0
+
+            DisplaySwatchStroke.Transparency =
+                ThemePicker.Disabled
+                and 0.9
+                or 0.72
+
+            DisplayContainer.Active =
+                not ThemePicker.Disabled
+
+            ArrowImage.ImageTransparency =
+                ThemePicker.Disabled
+                and 0.8
+                or MenuTable.Active
+                and 0
+                or 0.45
+        end
+
+        function ThemePicker:UpdateColors()
+
+            ThemePicker:Display()
+
+            UpdateButtons()
+        end
+
+        function ThemePicker:OnChanged(callback)
+
+            ThemePicker.Changed =
+                callback
+        end
+
+        function ThemePicker:SetValue(
+            value,
+            silent
+        )
+
+            if ThemePicker.Disabled then
+                return false
+            end
+
+            value =
+                tostring(
+                    value
+                    or ""
+                )
+
+            if not table.find(
+                ThemePicker.Values,
+                value
+            ) then
+
+                return false
+            end
+
+            local changed =
+                ThemePicker.Value
+                ~= value
+
+            ThemePicker.Value =
+                value
+
+            ThemePicker:Display()
+
+            UpdateButtons()
+
+            if changed
+            and silent ~= true then
+
+                Library:UpdateDependencyBoxes()
+
+                Library:SafeCallback(
+                    ThemePicker.Callback,
+                    ThemePicker.Value
+                )
+
+                Library:SafeCallback(
+                    ThemePicker.Changed,
+                    ThemePicker.Value
+                )
+
+                ThemePicker:Display()
+
+                UpdateButtons()
+            end
+
+            return true
+        end
+
+        function ThemePicker:SetValues(values)
+
+            ThemePicker.Values =
+                type(values) == "table"
+                and values
+                or {}
+
+            if not table.find(
+                ThemePicker.Values,
+                ThemePicker.Value
+            ) then
+
+                ThemePicker.Value =
+                    ThemePicker.Values[1]
+            end
+
+            BuildButtons()
+
+            ThemePicker:RecalculateListSize()
+
+            ThemePicker:Display()
+        end
+
+        function ThemePicker:SetDisabled(disabled)
+
+            ThemePicker.Disabled =
+                disabled == true
+
+            if ThemePicker.TooltipTable then
+
+                ThemePicker.TooltipTable.Disabled =
+                    ThemePicker.Disabled
+            end
+
+            if ThemePicker.Disabled then
+
+                MenuTable:Close()
+            end
+
+            ThemePicker:Display()
+
+            UpdateButtons()
+        end
+
+        function ThemePicker:SetVisible(visible)
+
+            ThemePicker.Visible =
+                visible ~= false
+
+            Holder.Visible =
+                ThemePicker.Visible
+
+            if not ThemePicker.Visible then
+
+                MenuTable:Close()
+            end
+
+            Groupbox:Resize()
+        end
+
+        function ThemePicker:SetText(text)
+
+            ThemePicker.Text =
+                tostring(
+                    text
+                    or ""
+                )
+
+            Label.Text =
+                ThemePicker.Text
+        end
+
+        DisplayContainer.MouseButton1Click:Connect(function()
+
+            if ThemePicker.Disabled then
+                return
+            end
+
+            MenuTable:Toggle()
+        end)
+
+        if typeof(
+            ThemePicker.Tooltip
+        ) == "string"
+        or typeof(
+            ThemePicker.DisabledTooltip
+        ) == "string" then
+
+            ThemePicker.TooltipTable =
+                Library:AddTooltip(
+                    ThemePicker.Tooltip,
+                    ThemePicker.DisabledTooltip,
+                    DisplayContainer
+                )
+
+            ThemePicker.TooltipTable.Disabled =
+                ThemePicker.Disabled
+        end
+
+        BuildButtons()
+
+        ThemePicker:RecalculateListSize()
+
+        ThemePicker:Display()
+
+        Groupbox:Resize()
+
+        ThemePicker.Holder =
+            Holder
+
+        ThemePicker.Default =
+            ThemePicker.Value
+
+        ThemePicker.DefaultValues =
+            ThemePicker.Values
+
+        table.insert(
+            Groupbox.Elements,
+            ThemePicker
+        )
+
+        Options[
+            Idx
+        ] =
+            ThemePicker
+
+        return ThemePicker
+    end
+
+
     function Funcs:AddDropdown(Idx, Info)
         Info = Library:Validate(Info, Templates.Dropdown)
 
@@ -16814,6 +18258,8 @@ end
             if Library.ActiveTab == Tab then
                 return
             end
+
+            Library:CloseCurrentMenu()
 
             local hadActiveTab =
                 Library.ActiveTab ~= nil
