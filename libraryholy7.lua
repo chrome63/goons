@@ -17218,6 +17218,12 @@ function Library:CreateWindow(WindowInfo)
                 )
             )
 
+            Library:RegisterSurface(
+                Pill,
+                "Panel",
+                0.04
+            )
+
             Library:AddOutline(
                 Pill
             )
@@ -17298,6 +17304,12 @@ function Library:CreateWindow(WindowInfo)
                                 Button,
                         }
                     )
+                )
+
+                Library:RegisterSurface(
+                    Button,
+                    "Control",
+                    1
                 )
 
                 local Stroke =
@@ -17410,7 +17422,7 @@ function Library:CreateWindow(WindowInfo)
                 )
             end
 
-                        function Segmented:Display()
+            function Segmented:Display()
 
                 for _, entry in ipairs(
                     Segmented.Buttons
@@ -17923,7 +17935,7 @@ function Library:CreateWindow(WindowInfo)
                 Type = "TopNavigation",
             }
 
-                        local function applyButtonVisual(
+            local function applyButtonVisual(
                 entry,
                 selected,
                 hovering
@@ -18114,6 +18126,12 @@ function Library:CreateWindow(WindowInfo)
                     })
                 )
 
+                Library:RegisterSurface(
+                    Button,
+                    "Control",
+                    0.62
+                )
+
                 local Stroke =
                     New("UIStroke", {
                         Color = "OutlineColor",
@@ -18135,7 +18153,11 @@ function Library:CreateWindow(WindowInfo)
                 table.insert(
                     Library.Corners,
                     New("UICorner", {
-                        CornerRadius = UDim.new(0, math.max(7, Library.CornerRadius + 1)),
+                        CornerRadius =
+                            UDim.new(
+                                0,
+                                3
+                            ),
                         Parent = Glow,
                     })
                 )
@@ -18175,18 +18197,7 @@ function Library:CreateWindow(WindowInfo)
                     Entry.Hovering =
                         true
 
-                    if Navigation.Value == Entry.Key then
-                        return
-                    end
-
-                    TweenService:Create(Button, Library.TweenInfo, {
-                        BackgroundTransparency = 0.20,
-                        TextTransparency = 0.16,
-                    }):Play()
-
-                    TweenService:Create(Stroke, Library.TweenInfo, {
-                        Transparency = 0.32,
-                    }):Play()
+                    Navigation:Display()
                 end)
 
                 Button.MouseLeave:Connect(function()
