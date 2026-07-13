@@ -229,7 +229,7 @@ local Library = {
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
 
-    CornerRadius = 4,
+    CornerRadius = 6,
     CornerRadiusDropdown = true,
 
     SharpStyle = true,
@@ -238,11 +238,11 @@ local Library = {
 
     SurfaceTransparencyMultipliers = {
         Window = 1,
-        Chrome = 0.38,
-        Panel = 0.30,
-        Groupbox = 0.20,
-        Control = 0.14,
-        Overlay = 0.08,
+        Chrome = 0.20,
+        Panel = 0.16,
+        Groupbox = 0.08,
+        Control = 0.05,
+        Overlay = 0.025,
     },
 
     IsLightTheme = false,
@@ -267,7 +267,13 @@ local Library = {
         BackgroundColor = Color3.fromRGB(3, 3, 5),
         MainColor = Color3.fromRGB(12, 13, 16),
         AccentColor = Color3.fromRGB(232, 45, 67),
-        OutlineColor = Color3.fromRGB(38, 40, 48),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
+
+        OuterRimColor = Color3.fromRGB(0, 0, 0),
+        InnerBorderColor = Color3.fromRGB(36, 37, 41),
+        ControlBorderColor = Color3.fromRGB(30, 31, 35),
+        SeparatorColor = Color3.fromRGB(21, 22, 25),
+
         FontColor = Color3.fromRGB(245, 245, 247),
         Font = Font.fromEnum(Enum.Font.GothamMedium),
 
@@ -376,7 +382,7 @@ local Templates = {
         TabSwipeOffset = 12,
         TabSwipeFrom = "bottom",
 
-        CornerRadius = 4,
+        CornerRadius = 6,
         NotifySide = "Right",
         ShowCustomCursor = true,
         Font = Enum.Font.GothamMedium,
@@ -609,7 +615,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(3, 3, 5),
         MainColor = Color3.fromRGB(12, 13, 16),
         AccentColor = Color3.fromRGB(232, 45, 67),
-        OutlineColor = Color3.fromRGB(38, 40, 48),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
         FontColor = Color3.fromRGB(245, 245, 247),
 
         SuccessColor = Color3.fromRGB(105, 229, 160),
@@ -628,7 +634,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(3, 7, 15),
         MainColor = Color3.fromRGB(9, 16, 29),
         AccentColor = Color3.fromRGB(74, 137, 255),
-        OutlineColor = Color3.fromRGB(35, 43, 58),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
         FontColor = Color3.fromRGB(239, 244, 255),
 
         SuccessColor = Color3.fromRGB(91, 220, 158),
@@ -647,7 +653,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(7, 4, 13),
         MainColor = Color3.fromRGB(18, 11, 29),
         AccentColor = Color3.fromRGB(161, 92, 255),
-        OutlineColor = Color3.fromRGB(47, 41, 57),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
         FontColor = Color3.fromRGB(247, 241, 255),
 
         SuccessColor = Color3.fromRGB(104, 226, 166),
@@ -666,7 +672,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(3, 10, 8),
         MainColor = Color3.fromRGB(8, 23, 18),
         AccentColor = Color3.fromRGB(43, 203, 132),
-        OutlineColor = Color3.fromRGB(34, 48, 43),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
         FontColor = Color3.fromRGB(237, 252, 246),
 
         SuccessColor = Color3.fromRGB(73, 229, 151),
@@ -685,7 +691,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(2, 9, 13),
         MainColor = Color3.fromRGB(7, 22, 29),
         AccentColor = Color3.fromRGB(52, 205, 232),
-        OutlineColor = Color3.fromRGB(34, 48, 55),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
         FontColor = Color3.fromRGB(237, 251, 255),
 
         SuccessColor = Color3.fromRGB(90, 227, 167),
@@ -704,7 +710,7 @@ Library.Themes = {
         BackgroundColor = Color3.fromRGB(5, 5, 6),
         MainColor = Color3.fromRGB(16, 16, 18),
         AccentColor = Color3.fromRGB(183, 188, 198),
-        OutlineColor = Color3.fromRGB(49, 50, 55),
+        OutlineColor = Color3.fromRGB(30, 31, 35),
         FontColor = Color3.fromRGB(246, 246, 248),
 
         SuccessColor = Color3.fromRGB(104, 220, 154),
@@ -3237,21 +3243,39 @@ function Library:MakeCover(Holder: GuiObject, Place: string)
 end
 
 function Library:MakeLine(Frame: GuiObject, Info)
-    local Line = New("Frame", {
-        AnchorPoint = Info.AnchorPoint or Vector2.zero,
-        BackgroundColor3 = "OutlineColor",
-        Position = Info.Position,
-        Size = Info.Size,
-        ZIndex = Info.ZIndex or Frame.ZIndex,
-        Parent = Frame,
-    })
+
+    local Line =
+        New(
+            "Frame",
+            {
+                AnchorPoint =
+                    Info.AnchorPoint
+                    or Vector2.zero,
+
+                BackgroundColor3 =
+                    "SeparatorColor",
+
+                Position =
+                    Info.Position,
+
+                Size =
+                    Info.Size,
+
+                ZIndex =
+                    Info.ZIndex
+                    or Frame.ZIndex,
+
+                Parent =
+                    Frame,
+            }
+        )
 
     return Line
 end
 
 function Library:AddOutline(Frame: GuiObject)
 
-    local OutlineStroke =
+    local OuterRim =
         New(
             "UIStroke",
             {
@@ -3259,7 +3283,34 @@ function Library:AddOutline(Frame: GuiObject)
                     Enum.ApplyStrokeMode.Border,
 
                 Color =
-                    "OutlineColor",
+                    "OuterRimColor",
+
+                LineJoinMode =
+                    Enum.LineJoinMode.Miter,
+
+                Thickness =
+                    2,
+
+                Transparency =
+                    0,
+
+                ZIndex =
+                    1,
+
+                Parent =
+                    Frame,
+            }
+        )
+
+    local InnerBorder =
+        New(
+            "UIStroke",
+            {
+                ApplyStrokeMode =
+                    Enum.ApplyStrokeMode.Border,
+
+                Color =
+                    "InnerBorderColor",
 
                 LineJoinMode =
                     Enum.LineJoinMode.Miter,
@@ -3268,7 +3319,7 @@ function Library:AddOutline(Frame: GuiObject)
                     1,
 
                 Transparency =
-                    0.12,
+                    0.03,
 
                 ZIndex =
                     2,
@@ -3278,35 +3329,8 @@ function Library:AddOutline(Frame: GuiObject)
             }
         )
 
-    local CompatibilityStroke =
-        New(
-            "UIStroke",
-            {
-                ApplyStrokeMode =
-                    Enum.ApplyStrokeMode.Border,
-
-                Color =
-                    "DarkColor",
-
-                LineJoinMode =
-                    Enum.LineJoinMode.Miter,
-
-                Thickness =
-                    1,
-
-                Transparency =
-                    1,
-
-                ZIndex =
-                    1,
-
-                Parent =
-                    Frame,
-            }
-        )
-
-    return OutlineStroke,
-        CompatibilityStroke
+    return InnerBorder,
+        OuterRim
 end
 
 function Library:AddBlank(Frame: GuiObject, Size: UDim2)
@@ -17185,7 +17209,7 @@ function Library:CreateWindow(WindowInfo)
                         CornerRadius =
                             UDim.new(
                                 0,
-                                Library.CornerRadius
+                                4
                             ),
 
                         Parent =
@@ -17209,7 +17233,7 @@ function Library:CreateWindow(WindowInfo)
             New("UIListLayout", {
                 FillDirection = Enum.FillDirection.Horizontal,
                 HorizontalFlex = Enum.UIFlexAlignment.Fill,
-                Padding = UDim.new(0, 3),
+                Padding = UDim.new(0, 2),
                 Parent = ButtonHolder,
             })
 
@@ -17224,71 +17248,144 @@ function Library:CreateWindow(WindowInfo)
             local function createButton(value)
 
                 value =
-                    tostring(value or "")
+                    tostring(
+                        value
+                        or ""
+                    )
 
                 local Button =
-                    New("TextButton", {
-                        BackgroundColor3 = "MainColor",
-                        BackgroundTransparency = 1,
-                        Size = UDim2.fromScale(1, 1),
-                        Text = value,
-                        TextSize = 14,
-                        TextTransparency = 0.38,
-                        Parent = ButtonHolder,
-                    })
+                    New(
+                        "TextButton",
+                        {
+                            BackgroundColor3 =
+                                "MainColor",
+
+                            BackgroundTransparency =
+                                1,
+
+                            Size =
+                                UDim2.fromScale(
+                                    1,
+                                    1
+                                ),
+
+                            Text =
+                                value,
+
+                            TextSize =
+                                14,
+
+                            TextTransparency =
+                                0.22,
+
+                            Parent =
+                                ButtonHolder,
+                        }
+                    )
 
                 table.insert(
                     Library.Corners,
-                    New("UICorner", {
-                        CornerRadius =
-                            UDim.new(
-                                0,
-                                math.max(
-                                    2,
-                                    Library.CornerRadius - 1
-                                )
-                            ),
+                    New(
+                        "UICorner",
+                        {
+                            CornerRadius =
+                                UDim.new(
+                                    0,
+                                    3
+                                ),
 
-                        Parent =
-                            Button,
-                    })
+                            Parent =
+                                Button,
+                        }
+                    )
                 )
 
                 local Stroke =
-                    New("UIStroke", {
-                        Color = "AccentColor",
-                        Transparency = 1,
-                        Parent = Button,
-                    })
+                    New(
+                        "UIStroke",
+                        {
+                            Color =
+                                "OutlineColor",
+
+                            Transparency =
+                                1,
+
+                            Parent =
+                                Button,
+                        }
+                    )
+
+                local Underline =
+                    New(
+                        "Frame",
+                        {
+                            AnchorPoint =
+                                Vector2.new(
+                                    0.5,
+                                    1
+                                ),
+
+                            BackgroundColor3 =
+                                "AccentColor",
+
+                            BackgroundTransparency =
+                                1,
+
+                            Position =
+                                UDim2.new(
+                                    0.5,
+                                    0,
+                                    1,
+                                    0
+                                ),
+
+                            Size =
+                                UDim2.new(
+                                    0,
+                                    0,
+                                    0,
+                                    2
+                                ),
+
+                            ZIndex =
+                                Button.ZIndex + 2,
+
+                            Parent =
+                                Button,
+                        }
+                    )
 
                 local Entry = {
-                    Value = value,
-                    Button = Button,
-                    Stroke = Stroke,
+                    Value =
+                        value,
+
+                    Button =
+                        Button,
+
+                    Stroke =
+                        Stroke,
+
+                    Underline =
+                        Underline,
+
+                    Hovering =
+                        false,
                 }
 
                 Button.MouseEnter:Connect(function()
 
-                    if Segmented.Value == value then
-                        return
-                    end
+                    Entry.Hovering =
+                        true
 
-                    TweenService:Create(Button, Library.TweenInfo, {
-                        TextTransparency = 0.12,
-                        BackgroundTransparency = 0.72,
-                    }):Play()
+                    Segmented:Display()
                 end)
 
                 Button.MouseLeave:Connect(function()
 
-                    if Segmented.Value == value then
-                        return
-                    end
+                    Entry.Hovering =
+                        false
 
-                    TweenService:Create(Button, Library.TweenInfo, {
-                        TextTransparency = 0.38,
-                        BackgroundTransparency = 1,
-                    }):Play()
+                    Segmented:Display()
                 end)
 
                 Button.MouseButton1Click:Connect(function()
@@ -17313,38 +17410,118 @@ function Library:CreateWindow(WindowInfo)
                 )
             end
 
-            function Segmented:Display()
+                        function Segmented:Display()
 
-                for _, entry in ipairs(Segmented.Buttons) do
+                for _, entry in ipairs(
+                    Segmented.Buttons
+                ) do
 
                     local selected =
-                        entry.Value == Segmented.Value
+                        entry.Value
+                        == Segmented.Value
+
+                    local hovering =
+                        entry.Hovering == true
+                        and selected ~= true
+
+                    local selectedBackground =
+                        function()
+
+                            return Library:GetBetterColor(
+                                Library.Scheme.MainColor,
+                                5
+                            )
+                        end
+
+                    local backgroundTransparency =
+                        selected
+                        and 0.04
+                        or hovering
+                        and 0.24
+                        or 1
 
                     entry.Button.BackgroundColor3 =
-                        selected and Library.Scheme.AccentColor
-                        or Library.Scheme.MainColor
-
-                    entry.Button.BackgroundTransparency =
                         selected
-                        and 0.82
-                        or 1
+                        and selectedBackground()
+                        or Library.Scheme.MainColor
 
                     entry.Button.TextTransparency =
                         selected
                         and 0
+                        or hovering
+                        and 0.08
                         or 0.22
+
+                    entry.Stroke.Color =
+                        selected
+                        and Library.Scheme.InnerBorderColor
+                        or Library.Scheme.OutlineColor
 
                     entry.Stroke.Transparency =
                         selected
-                        and 0.08
+                        and 0
+                        or hovering
+                        and 0.22
                         or 1
 
-                    Library.Registry[entry.Button].BackgroundColor3 =
-                        selected and "AccentColor"
+                    entry.Underline.BackgroundTransparency =
+                        selected
+                        and 0
+                        or 1
+
+                    entry.Underline.Size =
+                        selected
+                        and UDim2.new(
+                            1,
+                            -18,
+                            0,
+                            2
+                        )
+                        or UDim2.new(
+                            0,
+                            0,
+                            0,
+                            2
+                        )
+
+                    Library.Registry[
+                        entry.Button
+                    ].BackgroundColor3 =
+                        selected
+                        and selectedBackground
                         or "MainColor"
 
-                    Library.Registry[entry.Stroke].Color =
+                    Library.Registry[
+                        entry.Stroke
+                    ].Color =
+                        selected
+                        and "InnerBorderColor"
+                        or "OutlineColor"
+
+                    Library.Registry[
+                        entry.Underline
+                    ].BackgroundColor3 =
                         "AccentColor"
+
+                    local surface =
+                        Library.SurfaceRegistry[
+                            entry.Button
+                        ]
+
+                    if type(surface) == "table" then
+
+                        surface.BaseTransparency =
+                            backgroundTransparency
+
+                        Library:ApplyTransparencyToSurface(
+                            entry.Button
+                        )
+
+                    else
+
+                        entry.Button.BackgroundTransparency =
+                            backgroundTransparency
+                    end
                 end
             end
 
@@ -17703,7 +17880,7 @@ function Library:CreateWindow(WindowInfo)
                         CornerRadius =
                             UDim.new(
                                 0,
-                                Library.CornerRadius
+                                6
                             ),
 
                         Parent =
@@ -17746,11 +17923,14 @@ function Library:CreateWindow(WindowInfo)
                 Type = "TopNavigation",
             }
 
-            local function applyButtonVisual(entry, selected, hovering)
+                        local function applyButtonVisual(
+                entry,
+                selected,
+                hovering
+            )
 
                 local accent =
-                    entry.AccentColor
-                    or Library.Scheme.AccentColor
+                    Library.Scheme.AccentColor
 
                 local baseColor =
                     Library.Scheme.MainColor
@@ -17760,25 +17940,25 @@ function Library:CreateWindow(WindowInfo)
                     and blendColor(
                         baseColor,
                         accent,
-                        0.18
+                        0.10
                     )
                     or hovering
                     and blendColor(
                         baseColor,
                         accent,
-                        0.10
+                        0.05
                     )
                     or baseColor
 
+                local backgroundTransparency =
+                    selected
+                    and 0.06
+                    or hovering
+                    and 0.24
+                    or 0.62
+
                 entry.Button.BackgroundColor3 =
                     backgroundColor
-
-                entry.Button.BackgroundTransparency =
-                    selected
-                    and 0.12
-                    or hovering
-                    and 0.30
-                    or 0.62
 
                 entry.Button.TextTransparency =
                     selected
@@ -17788,53 +17968,124 @@ function Library:CreateWindow(WindowInfo)
                     or 0.22
 
                 entry.Stroke.Color =
-                    selected and accent
-                    or hovering and accent
+                    selected
+                    and Library.Scheme.InnerBorderColor
                     or Library.Scheme.OutlineColor
 
                 entry.Stroke.Transparency =
                     selected
-                    and 0.08
+                    and 0
                     or hovering
-                    and 0.34
-                    or 0.72
+                    and 0.20
+                    or 0.62
 
                 entry.Underline.BackgroundColor3 =
                     accent
 
                 entry.Underline.BackgroundTransparency =
-                    selected and 0
+                    selected
+                    and 0
                     or 1
 
                 entry.Underline.Size =
                     selected
-                    and UDim2.new(1, -26, 0, 2)
-                    or UDim2.new(0, 0, 0, 2)
-
-                entry.Glow.BackgroundColor3 =
-                    accent
+                    and UDim2.new(
+                        1,
+                        -18,
+                        0,
+                        2
+                    )
+                    or UDim2.new(
+                        0,
+                        0,
+                        0,
+                        2
+                    )
 
                 entry.Glow.BackgroundTransparency =
                     1
 
-                Library.Registry[entry.Button] =
-                    Library.Registry[entry.Button]
+                Library.Registry[
+                    entry.Button
+                ] =
+                    Library.Registry[
+                        entry.Button
+                    ]
                     or {}
 
-                Library.Registry[entry.Stroke] =
-                    Library.Registry[entry.Stroke]
+                Library.Registry[
+                    entry.Stroke
+                ] =
+                    Library.Registry[
+                        entry.Stroke
+                    ]
                     or {}
 
-                Library.Registry[entry.Underline] =
-                    Library.Registry[entry.Underline]
+                Library.Registry[
+                    entry.Underline
+                ] =
+                    Library.Registry[
+                        entry.Underline
+                    ]
                     or {}
 
-                Library.Registry[entry.Glow] =
-                    Library.Registry[entry.Glow]
-                    or {}
+                Library.Registry[
+                    entry.Button
+                ].BackgroundColor3 =
+                    function()
 
-                Library.Registry[entry.Button].TextColor3 =
+                        local currentAccent =
+                            Library.Scheme.AccentColor
+
+                        if entry.Key
+                            == Navigation.Value then
+
+                            return blendColor(
+                                Library.Scheme.MainColor,
+                                currentAccent,
+                                0.10
+                            )
+                        end
+
+                        return Library.Scheme.MainColor
+                    end
+
+                Library.Registry[
+                    entry.Button
+                ].TextColor3 =
                     "FontColor"
+
+                Library.Registry[
+                    entry.Stroke
+                ].Color =
+                    selected
+                    and "InnerBorderColor"
+                    or "OutlineColor"
+
+                Library.Registry[
+                    entry.Underline
+                ].BackgroundColor3 =
+                    "AccentColor"
+
+                local surface =
+                    Library.SurfaceRegistry[
+                        entry.Button
+                    ]
+
+                if type(surface) == "table" then
+
+                    surface.BaseTransparency =
+                        backgroundTransparency
+
+                    Library:ApplyTransparencyToSurface(
+                        entry.Button
+                    )
+
+                else
+
+                    entry.Button.BackgroundTransparency =
+                        backgroundTransparency
+                end
             end
 
             local function createButton(item)
@@ -17857,10 +18108,7 @@ function Library:CreateWindow(WindowInfo)
                         CornerRadius =
                             UDim.new(
                                 0,
-                                math.max(
-                                    2,
-                                    Library.CornerRadius - 1
-                                )
+                                3
                             ),
                         Parent = Button,
                     })
@@ -18112,7 +18360,7 @@ function Library:CreateWindow(WindowInfo)
                                 "MainColor",
 
                             BackgroundTransparency =
-                                0.04,
+                                0.02,
 
                             ClipsDescendants =
                                 Info.Collapsible == true,
@@ -18136,7 +18384,10 @@ function Library:CreateWindow(WindowInfo)
                             CornerRadius =
                                 UDim.new(
                                     0,
-                                    WindowInfo.CornerRadius
+                                    math.max(
+                                        7,
+                                        WindowInfo.CornerRadius + 1
+                                    )
                                 ),
 
                             Parent =
@@ -18148,30 +18399,11 @@ function Library:CreateWindow(WindowInfo)
                 Library:RegisterSurface(
                     GroupboxHolder,
                     "Groupbox",
-                    0.04
+                    0.02
                 )
 
                 Library:AddOutline(
                     GroupboxHolder
-                )
-
-                Library:MakeLine(
-                    GroupboxHolder,
-                    {
-                        Position =
-                            UDim2.fromOffset(
-                                0,
-                                29
-                            ),
-
-                        Size =
-                            UDim2.new(
-                                1,
-                                0,
-                                0,
-                                1
-                            ),
-                    }
                 )
 
                 local BoxIcon = Library:GetCustomIcon(Info.IconName)
