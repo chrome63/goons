@@ -3424,47 +3424,336 @@ function Library:AddDraggableLabel(Text: string)
     return Table
 end
 
-function Library:AddDraggableButton(Text: string, Func, ExcludeScaling: boolean?)
-    local Table = {}
+function Library:AddDraggableButton(
+    Text: string,
+    Func,
+    ExcludeScaling: boolean?
+)
 
-    local Button = New("TextButton", {
-        BackgroundColor3 = "BackgroundColor",
-        Position = UDim2.fromOffset(6, 6),
-        TextSize = 16,
-        ZIndex = 10,
-        Parent = ScreenGui,
-    })
-    table.insert(
-        Library.Corners, 
-        New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
-            Parent = Button,
-        })
+    local Table =
+        {}
+
+    local BaseFont =
+        Font.fromEnum(
+            Enum.Font.Gotham
+        )
+
+    local ToggleFont =
+        Font.new(
+            BaseFont.Family,
+            Enum.FontWeight.ExtraBold,
+            Enum.FontStyle.Normal
+        )
+
+    local Holder =
+        New(
+            "Frame",
+            {
+                Name =
+                    "HolyToggleHolder",
+
+                Active =
+                    true,
+
+                BackgroundTransparency =
+                    1,
+
+                ClipsDescendants =
+                    false,
+
+                Position =
+                    UDim2.fromOffset(
+                        6,
+                        6
+                    ),
+
+                Size =
+                    UDim2.fromOffset(
+                        80,
+                        38
+                    ),
+
+                ZIndex =
+                    10,
+
+                Parent =
+                    ScreenGui,
+            }
+        )
+
+    local Shadow =
+        New(
+            "Frame",
+            {
+                Name =
+                    "HolyToggleShadow",
+
+                BackgroundColor3 =
+                    Color3.fromRGB(
+                        0,
+                        0,
+                        0
+                    ),
+
+                BackgroundTransparency =
+                    0.52,
+
+                BorderSizePixel =
+                    0,
+
+                Position =
+                    UDim2.fromOffset(
+                        1,
+                        3
+                    ),
+
+                Size =
+                    UDim2.fromOffset(
+                        80,
+                        38
+                    ),
+
+                ZIndex =
+                    10,
+
+                Parent =
+                    Holder,
+            }
+        )
+
+    New(
+        "UICorner",
+        {
+            CornerRadius =
+                UDim.new(
+                    0,
+                    11
+                ),
+
+            Parent =
+                Shadow,
+        }
     )
+
+    local Button =
+        New(
+            "TextButton",
+            {
+                Name =
+                    "HolyToggleButton",
+
+                Active =
+                    true,
+
+                AutoButtonColor =
+                    false,
+
+                BackgroundColor3 =
+                    Color3.fromRGB(
+                        9,
+                        10,
+                        14
+                    ),
+
+                BackgroundTransparency =
+                    0,
+
+                BorderSizePixel =
+                    0,
+
+                ClipsDescendants =
+                    false,
+
+                FontFace =
+                    ToggleFont,
+
+                Position =
+                    UDim2.fromOffset(
+                        0,
+                        0
+                    ),
+
+                Size =
+                    UDim2.fromOffset(
+                        80,
+                        38
+                    ),
+
+                Text =
+                    tostring(
+                        Text
+                        or "HOLY"
+                    ),
+
+                TextColor3 =
+                    Color3.fromRGB(
+                        255,
+                        255,
+                        255
+                    ),
+
+                TextScaled =
+                    false,
+
+                TextSize =
+                    19,
+
+                TextStrokeColor3 =
+                    Color3.fromRGB(
+                        0,
+                        0,
+                        0
+                    ),
+
+                TextStrokeTransparency =
+                    0,
+
+                TextWrapped =
+                    false,
+
+                ZIndex =
+                    11,
+
+                Parent =
+                    Holder,
+            }
+        )
+
+    New(
+        "UICorner",
+        {
+            CornerRadius =
+                UDim.new(
+                    0,
+                    11
+                ),
+
+            Parent =
+                Button,
+        }
+    )
+
+    local ButtonStroke =
+        Instance.new(
+            "UIStroke"
+        )
+
+    ButtonStroke.ApplyStrokeMode =
+        Enum.ApplyStrokeMode.Border
+
+    ButtonStroke.Color =
+        Color3.fromRGB(
+            48,
+            51,
+            60
+        )
+
+    ButtonStroke.LineJoinMode =
+        Enum.LineJoinMode.Round
+
+    ButtonStroke.Thickness =
+        1
+
+    ButtonStroke.Transparency =
+        0
+
+    ButtonStroke.Parent =
+        Button
+
     if not ExcludeScaling then
+
         table.insert(
             Library.Scales,
-            New("UIScale", {
-                Parent = Button,
-            })
+            New(
+                "UIScale",
+                {
+                    Parent =
+                        Holder,
+                }
+            )
         )
     end
-    Library:AddOutline(Button)
 
-    Button.MouseButton1Click:Connect(function()
-        Library:SafeCallback(Func, Table)
-    end)
-    Library:MakeDraggable(Button, Button, true)
+    Library:GiveSignal(
+        Button.MouseEnter:Connect(function()
 
-    Table.Button = Button
+            Button.BackgroundColor3 =
+                Color3.fromRGB(
+                    14,
+                    15,
+                    20
+                )
 
-    function Table:SetText(Text: string)
-        local X, Y = Library:GetTextBounds(Text, Library.Scheme.Font, 16)
+            ButtonStroke.Color =
+                Color3.fromRGB(
+                    67,
+                    70,
+                    82
+                )
+        end)
+    )
 
-        Button.Text = Text
-        Button.Size = UDim2.fromOffset(X * 2, Y * 2)
+    Library:GiveSignal(
+        Button.MouseLeave:Connect(function()
+
+            Button.BackgroundColor3 =
+                Color3.fromRGB(
+                    9,
+                    10,
+                    14
+                )
+
+            ButtonStroke.Color =
+                Color3.fromRGB(
+                    48,
+                    51,
+                    60
+                )
+        end)
+    )
+
+    Library:GiveSignal(
+        Button.MouseButton1Click:Connect(function()
+
+            Library:SafeCallback(
+                Func,
+                Table
+            )
+        end)
+    )
+
+    Library:MakeDraggable(
+        Holder,
+        Button,
+        true
+    )
+
+    Table.Holder =
+        Holder
+
+    Table.Button =
+        Button
+
+    Table.Shadow =
+        Shadow
+
+    Table.Stroke =
+        ButtonStroke
+
+    function Table:SetText(NewText: string)
+
+        Button.Text =
+            tostring(
+                NewText
+                or "HOLY"
+            )
     end
-    Table:SetText(Text)
+
+    function Table:SetVisible(Visible: boolean)
+
+        Holder.Visible =
+            Visible == true
+    end
 
     return Table
 end
@@ -20257,17 +20546,44 @@ end
     end
 
     if Library.IsMobile then
-        local ToggleButton = Library:AddDraggableButton("Holy", function()
-            Library:Toggle()
-        end, true)
 
-        if WindowInfo.MobileButtonsSide == "Right" then
-            ToggleButton.Button.Position = UDim2.new(1, -6, 0, 6)
-            ToggleButton.Button.AnchorPoint = Vector2.new(1, 0)
+        local ToggleButton =
+            Library:AddDraggableButton(
+                "HOLY",
+                function()
+
+                    Library:Toggle()
+                end,
+                true
+            )
+
+        local ToggleHolder =
+            ToggleButton.Holder
+            or ToggleButton.Button
+
+        if WindowInfo.MobileButtonsSide
+            == "Right" then
+
+            ToggleHolder.Position =
+                UDim2.new(
+                    1,
+                    -6,
+                    0,
+                    6
+                )
+
+            ToggleHolder.AnchorPoint =
+                Vector2.new(
+                    1,
+                    0
+                )
         end
 
-        if WindowInfo.ShowMobileButtons == false then
-            ToggleButton.Button.Visible = false
+        if WindowInfo.ShowMobileButtons
+            == false then
+
+            ToggleHolder.Visible =
+                false
         end
     end
 
