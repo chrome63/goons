@@ -18737,6 +18737,8 @@ function Library:CreateWindow(WindowInfo)
         end
 
 
+        local AddTabbox
+
         function Tab:AddGroupbox(Info)
             local SideName =
                 Info.Side == 1
@@ -18910,6 +18912,7 @@ function Library:CreateWindow(WindowInfo)
             end
 
             local Groupbox = {
+    Type = "Groupbox",
     Name = tostring(Info.Name or "Groupbox"),
     SideName = SideName,
     CreatedOrder = #Tab.GroupboxOrder[SideName] + 1,
@@ -19017,6 +19020,8 @@ if GroupboxHeaderButton then
     end)
 end
 
+            Groupbox.AddTabbox = AddTabbox
+
             setmetatable(Groupbox, BaseGroupbox)
 
             Groupbox:Resize()
@@ -19075,12 +19080,18 @@ function Tab:AddRightCollapsibleGroupbox(Name, IconName, DefaultOpen)
     })
 end
 
-        function Tab:AddTabbox(Info)
+        AddTabbox = function(self, Info)
+            Info = Info or {}
+
+            local ParentObj = self
+
             local BoxHolder = New("Frame", {
                 AutomaticSize = Enum.AutomaticSize.Y,
                 BackgroundTransparency = 1,
                 Size = UDim2.fromScale(1, 0),
-                Parent = Info.Side == 1 and TabLeft or TabRight,
+                Parent = if ParentObj.Type == "Groupbox"
+                    then ParentObj.Container
+                    else (Info.Side == 1 and TabLeft or TabRight),
             })
             New("UIListLayout", {
                 Padding = UDim.new(0, 6),
@@ -19270,235 +19281,38 @@ end
                     DependencyBoxes = {},
                 }
 
-        function Tab:Show()
+                function Tab:Show()
+                    if Tabbox.ActiveTab then
+                        Tabbox.ActiveTab:Hide()
+                    end
 
-            if Library.ActiveTab == Tab then
-                return
-            end
+                    Button.BackgroundTransparency = 1
+                    ButtonLabel.TextTransparency = 0
 
-            Library:CloseCurrentMenu()
+                    if ButtonIcon then
+                        ButtonIcon.ImageTransparency = 0
+                    end
 
-            local hadActiveTab =
-                Library.ActiveTab ~= nil
+                    Line.Visible = false
+                    Container.Visible = true
 
-            if Library.ActiveTab then
-
-                Library.ActiveTab:Hide()
-            end
-
-            TweenService:Create(
-                TabButton,
-                Library.TweenInfo,
-                {
-                    BackgroundTransparency = 0.18,
-                }
-            ):Play()
-
-            TweenService:Create(
-                TabActiveBar,
-                Library.TweenInfo,
-                {
-                    BackgroundTransparency = 0,
-                }
-            ):Play()
-
-            TweenService:Create(
-                TabLabel,
-                Library.TweenInfo,
-                {
-                    TextTransparency = 0,
-                }
-            ):Play()
-
-            if TabIcon then
-
-                TweenService:Create(
-                    TabIcon,
-                    Library.TweenInfo,
-                    {
-                        ImageTransparency = 0,
-                    }
-                ):Play()
-            end
-
-            if Description then
-
-                Window:ShowTabInfo(
-                    Name,
-                    Description
-                )
-            end
-
-            if TabTransitionTween then
-
-                TabTransitionTween:Cancel()
-
-                TabTransitionTween =
-                    nil
-            end
-
-            local animate =
-                hadActiveTab == true
-                and Library.Animations.TabSwitch == true
-                and Library.TabTransitionTime > 0
-
-            if animate == true then
-
-                local offset =
-                    Library.TabSwipeOffset
-
-                local startPosition =
-                    UDim2.fromOffset(
-                        0,
-                        offset
-                    )
-
-                if Library.TabSwipeFrom == "top" then
-
-                    startPosition =
-                        UDim2.fromOffset(
-                            0,
-                            -offset
-                        )
-
-                elseif Library.TabSwipeFrom == "left" then
-
-                    startPosition =
-                        UDim2.fromOffset(
-                            -offset,
-                            0
-                        )
-
-                elseif Library.TabSwipeFrom == "right" then
-
-                    startPosition =
-                        UDim2.fromOffset(
-                            offset,
-                            0
-                        )
+                    Tabbox.ActiveTab = Tab
+                    Tab:Resize()
                 end
 
-                TabContainer.Position =
-                    startPosition
+                function Tab:Hide()
+                    Button.BackgroundTransparency = 0
+                    ButtonLabel.TextTransparency = 0.5
 
-                TabContainer.GroupTransparency =
-                    1
+                    if ButtonIcon then
+                        ButtonIcon.ImageTransparency = 0.5
+                    end
 
-                TabContainer.Visible =
-                    true
+                    Line.Visible = true
+                    Container.Visible = false
 
-                TabTransitionTween =
-                    TweenService:Create(
-                        TabContainer,
-                        TweenInfo.new(
-                            Library.TabTransitionTime,
-                            Enum.EasingStyle.Quad,
-                            Enum.EasingDirection.Out
-                        ),
-                        {
-                            Position =
-                                UDim2.fromOffset(
-                                    0,
-                                    0
-                                ),
-
-                            GroupTransparency =
-                                0,
-                        }
-                    )
-
-                TabTransitionTween:Play()
-
-            else
-
-                TabContainer.Position =
-                    UDim2.fromOffset(
-                        0,
-                        0
-                    )
-
-                TabContainer.GroupTransparency =
-                    0
-
-                TabContainer.Visible =
-                    true
-            end
-
-            Tab:RefreshSides()
-
-            Library.ActiveTab =
-                Tab
-
-            if Library.Searching then
-
-                Library:UpdateSearch(
-                    Library.SearchText
-                )
-            end
-        end
-
-        function Tab:Hide()
-
-            if TabTransitionTween then
-
-                TabTransitionTween:Cancel()
-
-                TabTransitionTween =
-                    nil
-            end
-
-            TweenService:Create(
-                TabButton,
-                Library.TweenInfo,
-                {
-                    BackgroundTransparency = 1,
-                }
-            ):Play()
-
-            TweenService:Create(
-                TabActiveBar,
-                Library.TweenInfo,
-                {
-                    BackgroundTransparency = 1,
-                }
-            ):Play()
-
-            TweenService:Create(
-                TabLabel,
-                Library.TweenInfo,
-                {
-                    TextTransparency = 0.5,
-                }
-            ):Play()
-
-            if TabIcon then
-
-                TweenService:Create(
-                    TabIcon,
-                    Library.TweenInfo,
-                    {
-                        ImageTransparency = 0.5,
-                    }
-                ):Play()
-            end
-
-            TabContainer.Visible =
-                false
-
-            TabContainer.Position =
-                UDim2.fromOffset(
-                    0,
-                    0
-                )
-
-            TabContainer.GroupTransparency =
-                0
-
-            Window:HideTabInfo()
-
-            Library.ActiveTab =
-                nil
-        end
+                    Tabbox.ActiveTab = nil
+                end
 
                 function Tab:Resize()
                     if Tabbox.ActiveTab ~= Tab then
@@ -19506,6 +19320,10 @@ end
                     end
 
                     TabboxHolder.Size = UDim2.new(1, 0, 0, (List.AbsoluteContentSize.Y / Library.DPIScale) + 49)
+
+                    if ParentObj.Type == "Groupbox" then
+                        ParentObj:Resize()
+                    end
                 end
 
                 function Tab:UpdateCorners()
@@ -19542,6 +19360,8 @@ end
 
             return Tabbox
         end
+
+        Tab.AddTabbox = AddTabbox
 
         function Tab:AddLeftTabbox(Name)
             return Tab:AddTabbox({ Side = 1, Name = Name })
