@@ -20254,7 +20254,9 @@ end
             ModalElement.Modal = Library.Toggled
         end
 
-        if Library.Toggled and not Library.IsMobile then
+        if Library.Toggled
+            and UserInputService.MouseEnabled
+        then
             local OldMouseIconEnabled = UserInputService.MouseIconEnabled
             local ShowCursorBinding = Library.ShowCursorBinding
             pcall(function()
