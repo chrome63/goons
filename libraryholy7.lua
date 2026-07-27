@@ -1828,13 +1828,30 @@ local function SafeParentUI(Instance: Instance, Parent: Instance | () -> Instanc
 end
 
 local function ParentUI(UI: Instance, SkipHiddenUI: boolean?)
-    if SkipHiddenUI then
-        SafeParentUI(UI, CoreGui)
+
+    local PlayerGui =
+        Library.LocalPlayer:FindFirstChildOfClass(
+            "PlayerGui"
+        )
+        or Library.LocalPlayer:WaitForChild(
+            "PlayerGui",
+            30
+        )
+
+    if PlayerGui then
+
+        SafeParentUI(
+            UI,
+            PlayerGui
+        )
+
         return
     end
 
-    pcall(protectgui, UI)
-    SafeParentUI(UI, gethui)
+    SafeParentUI(
+        UI,
+        CoreGui
+    )
 end
 
 local ScreenGui = New("ScreenGui", {
