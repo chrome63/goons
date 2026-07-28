@@ -1629,9 +1629,50 @@ type IconModule = {
 }
 
 local FetchIcons, Icons = pcall(function()
-    return (loadstring(
-        game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
-    ) :: () -> IconModule)()
+    local IconSource =
+        game:HttpGet(
+            "https://gitlab.com/upio/lucide-roblox-direct/-/raw/main/source.lua",
+            true
+        )
+
+    local PatchedIconSource,
+        InitialFlagReplacements =
+        IconSource:gsub(
+            "local IS_GETCUSTOMASSET_BROKEN = false",
+            "local IS_GETCUSTOMASSET_BROKEN = true",
+            1
+        )
+
+    local DetectionFlagReplacements
+
+    PatchedIconSource,
+        DetectionFlagReplacements =
+        PatchedIconSource:gsub(
+            "IS_GETCUSTOMASSET_BROKEN = not Success",
+            "IS_GETCUSTOMASSET_BROKEN = true",
+            1
+        )
+
+    assert(
+        InitialFlagReplacements == 1
+        and DetectionFlagReplacements == 1,
+        "Could not force Lucide public asset fallback"
+    )
+
+    local IconChunk,
+        CompileError =
+        loadstring(
+            PatchedIconSource
+        )
+
+    assert(
+        type(IconChunk) == "function",
+        tostring(
+            CompileError
+        )
+    )
+
+    return (IconChunk :: () -> IconModule)()
 end)
 
 function Library:GetIcon(IconName: string)
