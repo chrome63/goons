@@ -116,22 +116,52 @@ do
             return nil
         end
 
-        local AssetData = CustomImageManagerAssets[AssetName]
+        local AssetData =
+            CustomImageManagerAssets[
+                AssetName
+            ]
+
         if AssetData.Id then
             return AssetData.Id
         end
 
-        local AssetID = string.format("rbxassetid://%s", AssetData.RobloxId)
+        local RobloxAssetId =
+            tonumber(
+                AssetData.RobloxId
+            )
+            or 0
 
-        if getcustomasset then
-            local Success, NewID = pcall(getcustomasset, AssetData.Path)
+        local AssetID = ""
 
-            if Success and NewID then
-                AssetID = NewID
+        if RobloxAssetId > 0 then
+
+            AssetID =
+                string.format(
+                    "rbxassetid://%s",
+                    RobloxAssetId
+                )
+
+        elseif getcustomasset then
+
+            local Success,
+                NewID =
+                pcall(
+                    getcustomasset,
+                    AssetData.Path
+                )
+
+            if Success == true
+            and type(NewID) == "string"
+            and NewID ~= "" then
+
+                AssetID =
+                    NewID
             end
         end
 
-        AssetData.Id = AssetID
+        AssetData.Id =
+            AssetID
+
         return AssetID
     end
 
