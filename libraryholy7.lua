@@ -518,6 +518,9 @@ local Templates = {
 
         Multi = false,
         MaxVisibleDropdownItems = 8,
+        Popout = nil,
+        PopoutThreshold = 8,
+        PickerTitle = nil,
 
         Callback = function() end,
         Changed = function() end,
@@ -8236,9 +8239,917 @@ function Library:CloseCurrentMenu()
     return false
 end
 
+local DropdownPicker = {
+    Active = false,
+    Built = false,
+    Config = nil,
+    Draft = nil,
+    Rows = {},
+    SelectedOnly = false,
+    AnimationToken = 0,
+}
+
+function DropdownPicker:CreateButton(Parent, Text, ZIndex)
+    local Button = New("TextButton", {
+        BackgroundColor3 = "AccentColor",
+        BackgroundTransparency = 0.92,
+        Size = UDim2.fromOffset(80, 30),
+        Text = Text,
+        TextSize = 12,
+        TextTransparency = 0.22,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        ZIndex = ZIndex,
+        Parent = Parent,
+    })
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 7),
+        Parent = Button,
+    })
+
+    New("UIStroke", {
+        Color = "AccentColor",
+        Transparency = 0.78,
+        Parent = Button,
+    })
+
+    Button.MouseEnter:Connect(function()
+        if not Button.Active then
+            return
+        end
+
+        local Selected = Button == self.AllButton and not self.SelectedOnly
+            or Button == self.SelectedButton and self.SelectedOnly
+
+        TweenService:Create(Button, Library.TweenInfo, {
+            BackgroundTransparency = Button == self.ApplyButton and 0.1 or Selected and 0.64 or 0.82,
+            TextTransparency = 0.05,
+        }):Play()
+    end)
+
+    Button.MouseLeave:Connect(function()
+        if not Button.Active then
+            return
+        end
+
+        local Selected = Button == self.AllButton and not self.SelectedOnly
+            or Button == self.SelectedButton and self.SelectedOnly
+
+        TweenService:Create(Button, Library.TweenInfo, {
+            BackgroundTransparency = Button == self.ApplyButton and 0.18 or Selected and 0.72 or 0.92,
+            TextTransparency = Button == self.ApplyButton and 0 or Selected and 0 or 0.22,
+        }):Play()
+    end)
+
+    return Button
+end
+
+function DropdownPicker:Create()
+    if self.Built then
+        return
+    end
+
+    self.Built = true
+
+    local Z = 14000
+    local SearchIcon = Library:GetIcon("search")
+    local CloseIcon = Library:GetIcon("x")
+
+    self.Overlay = New("TextButton", {
+        Active = true,
+        BackgroundColor3 = "DarkColor",
+        BackgroundTransparency = 1,
+        Size = UDim2.fromScale(1, 1),
+        Text = "",
+        Visible = false,
+        ZIndex = Z,
+        Parent = ScreenGui,
+    })
+
+    self.Panel = New("CanvasGroup", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundColor3 = "BackgroundColor",
+        GroupTransparency = 1,
+        Position = UDim2.new(0.5, 0, 0.5, 8),
+        Size = UDim2.new(1, -24, 1, -24),
+        Visible = false,
+        ZIndex = Z + 1,
+        Parent = ScreenGui,
+    })
+
+    Library:RegisterSurface(self.Panel, "Overlay", 0.01)
+    Library:AddOutline(self.Panel)
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 14),
+        Parent = self.Panel,
+    })
+
+    New("UISizeConstraint", {
+        MaxSize = Vector2.new(640, 560),
+        Parent = self.Panel,
+    })
+
+    self.PanelScale = New("UIScale", {
+        Scale = 0.96,
+        Parent = self.Panel,
+    })
+
+    self.Title = New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(16, 0),
+        Size = UDim2.new(1, -190, 0, 44),
+        Text = "Select options",
+        TextSize = 17,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    self.CountLabel = New("TextLabel", {
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -52, 0, 0),
+        Size = UDim2.fromOffset(118, 44),
+        Text = "0 selected",
+        TextSize = 12,
+        TextTransparency = 0.42,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    self.CloseButton = New("ImageButton", {
+        AnchorPoint = Vector2.new(1, 0),
+        BackgroundColor3 = "MainColor",
+        BackgroundTransparency = 0.2,
+        Image = CloseIcon and CloseIcon.Url or "",
+        ImageColor3 = "FontColor",
+        ImageRectOffset = CloseIcon and CloseIcon.ImageRectOffset or Vector2.zero,
+        ImageRectSize = CloseIcon and CloseIcon.ImageRectSize or Vector2.zero,
+        ImageTransparency = 0.28,
+        Position = UDim2.new(1, -12, 0, 8),
+        Size = UDim2.fromOffset(28, 28),
+        ZIndex = Z + 3,
+        Parent = self.Panel,
+    })
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 7),
+        Parent = self.CloseButton,
+    })
+
+    New("UIStroke", {
+        Color = "OutlineColor",
+        Transparency = 0.35,
+        Parent = self.CloseButton,
+    })
+
+    self.SearchHolder = New("Frame", {
+        BackgroundColor3 = "MainColor",
+        Position = UDim2.fromOffset(12, 46),
+        Size = UDim2.new(1, -24, 0, 36),
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 8),
+        Parent = self.SearchHolder,
+    })
+
+    self.SearchStroke = New("UIStroke", {
+        Color = "OutlineColor",
+        Parent = self.SearchHolder,
+    })
+
+    New("ImageLabel", {
+        Image = SearchIcon and SearchIcon.Url or "",
+        ImageColor3 = "FontColor",
+        ImageRectOffset = SearchIcon and SearchIcon.ImageRectOffset or Vector2.zero,
+        ImageRectSize = SearchIcon and SearchIcon.ImageRectSize or Vector2.zero,
+        ImageTransparency = 0.45,
+        Position = UDim2.fromOffset(10, 10),
+        Size = UDim2.fromOffset(16, 16),
+        ZIndex = Z + 3,
+        Parent = self.SearchHolder,
+    })
+
+    self.SearchBox = New("TextBox", {
+        BackgroundTransparency = 1,
+        ClearTextOnFocus = false,
+        PlaceholderText = "Search options...",
+        Position = UDim2.fromOffset(34, 0),
+        Size = UDim2.new(1, -44, 1, 0),
+        TextSize = 14,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = Z + 3,
+        Parent = self.SearchHolder,
+    })
+
+    self.Toolbar = New("Frame", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(12, 90),
+        Size = UDim2.new(1, -24, 0, 30),
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    New("UIGridLayout", {
+        CellPadding = UDim2.fromOffset(6, 0),
+        CellSize = UDim2.new(0.25, -5, 1, 0),
+        FillDirectionMaxCells = 4,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = self.Toolbar,
+    })
+
+    self.AllButton = self:CreateButton(self.Toolbar, "All", Z + 3)
+    self.AllButton.LayoutOrder = 1
+
+    self.SelectedButton = self:CreateButton(self.Toolbar, "Selected", Z + 3)
+    self.SelectedButton.LayoutOrder = 2
+
+    self.SelectShownButton = self:CreateButton(self.Toolbar, "Select shown", Z + 3)
+    self.SelectShownButton.LayoutOrder = 3
+
+    self.ClearButton = self:CreateButton(self.Toolbar, "Clear", Z + 3)
+    self.ClearButton.LayoutOrder = 4
+
+    self.GridHolder = New("Frame", {
+        BackgroundColor3 = "MainColor",
+        Position = UDim2.fromOffset(12, 128),
+        Size = UDim2.new(1, -24, 1, -186),
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 10),
+        Parent = self.GridHolder,
+    })
+
+    New("UIStroke", {
+        Color = "OutlineColor",
+        Transparency = 0.25,
+        Parent = self.GridHolder,
+    })
+
+    self.Grid = New("ScrollingFrame", {
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        BackgroundTransparency = 1,
+        BottomImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+        CanvasSize = UDim2.fromOffset(0, 0),
+        ScrollBarImageColor3 = "AccentColor",
+        ScrollBarImageTransparency = 0.28,
+        ScrollBarThickness = 3,
+        Size = UDim2.fromScale(1, 1),
+        TopImage = "rbxasset://textures/ui/Scroll/scroll-middle.png",
+        ZIndex = Z + 3,
+        Parent = self.GridHolder,
+    })
+
+    New("UIPadding", {
+        PaddingBottom = UDim.new(0, 8),
+        PaddingLeft = UDim.new(0, 8),
+        PaddingRight = UDim.new(0, 8),
+        PaddingTop = UDim.new(0, 8),
+        Parent = self.Grid,
+    })
+
+    self.GridLayout = New("UIGridLayout", {
+        CellPadding = UDim2.fromOffset(6, 6),
+        CellSize = UDim2.fromOffset(280, 34),
+        FillDirection = Enum.FillDirection.Horizontal,
+        FillDirectionMaxCells = 2,
+        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = self.Grid,
+    })
+
+    self.EmptyLabel = New("TextLabel", {
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 1,
+        Position = UDim2.fromScale(0.5, 0.5),
+        Size = UDim2.new(1, -32, 0, 40),
+        Text = "No matching options",
+        TextSize = 14,
+        TextTransparency = 0.5,
+        Visible = false,
+        ZIndex = Z + 4,
+        Parent = self.GridHolder,
+    })
+
+    self.Footer = New("Frame", {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 12, 1, -48),
+        Size = UDim2.new(1, -24, 0, 36),
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    self.SummaryLabel = New("TextLabel", {
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, -178, 1, 0),
+        Text = "0 selected",
+        TextSize = 12,
+        TextTransparency = 0.42,
+        TextTruncate = Enum.TextTruncate.AtEnd,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = Z + 3,
+        Parent = self.Footer,
+    })
+
+    self.ApplyButton = self:CreateButton(self.Footer, "Apply", Z + 3)
+    self.ApplyButton.AnchorPoint = Vector2.new(1, 0.5)
+    self.ApplyButton.BackgroundTransparency = 0.18
+    self.ApplyButton.Position = UDim2.new(1, 0, 0.5, 0)
+    self.ApplyButton.Size = UDim2.fromOffset(88, 32)
+
+    self.CancelButton = self:CreateButton(self.Footer, "Cancel", Z + 3)
+    self.CancelButton.AnchorPoint = Vector2.new(1, 0.5)
+    self.CancelButton.Position = UDim2.new(1, -96, 0.5, 0)
+    self.CancelButton.Size = UDim2.fromOffset(76, 32)
+
+    self.Overlay.MouseButton1Click:Connect(function()
+        self:Close()
+    end)
+
+    self.CloseButton.MouseButton1Click:Connect(function()
+        self:Close()
+    end)
+
+    self.CancelButton.MouseButton1Click:Connect(function()
+        self:Close()
+    end)
+
+    self.ApplyButton.MouseButton1Click:Connect(function()
+        self:Apply()
+    end)
+
+    self.AllButton.MouseButton1Click:Connect(function()
+        self.SelectedOnly = false
+        self.Grid.CanvasPosition = Vector2.zero
+        self:RefreshRows()
+    end)
+
+    self.SelectedButton.MouseButton1Click:Connect(function()
+        self.SelectedOnly = true
+        self.Grid.CanvasPosition = Vector2.zero
+        self:RefreshRows()
+    end)
+
+    self.SelectShownButton.MouseButton1Click:Connect(function()
+        if not (self.Config and self.Config.Dropdown.Multi) then
+            return
+        end
+
+        for _, Row in self.Rows do
+            if Row.Container.Visible and not Row.Disabled then
+                self.Draft[Row.Value] = true
+            end
+        end
+
+        self:RefreshRows()
+    end)
+
+    self.ClearButton.MouseButton1Click:Connect(function()
+        if not (self.Config and self.Config.Dropdown.Multi) then
+            return
+        end
+
+        table.clear(self.Draft)
+
+        if not self.Config.Info.AllowNull then
+            for _, Row in self.Rows do
+                if not Row.Disabled then
+                    self.Draft[Row.Value] = true
+                    break
+                end
+            end
+        end
+
+        self:RefreshRows()
+    end)
+
+    self.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        if self.Active then
+            self.Grid.CanvasPosition = Vector2.zero
+            self:RefreshRows()
+        end
+    end)
+
+    self.SearchBox.Focused:Connect(function()
+        TweenService:Create(self.SearchStroke, Library.TweenInfo, {
+            Color = Library.Scheme.AccentColor,
+            Thickness = 1.5,
+        }):Play()
+    end)
+
+    self.SearchBox.FocusLost:Connect(function()
+        TweenService:Create(self.SearchStroke, Library.TweenInfo, {
+            Color = Library.Scheme.OutlineColor,
+            Thickness = 1,
+        }):Play()
+    end)
+
+    self.Grid:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        self:UpdateGrid()
+    end)
+end
+
+function DropdownPicker:UpdateGrid()
+    if not self.Built then
+        return
+    end
+
+    local Width = math.max(self.Grid.AbsoluteSize.X - 16, 1)
+    local Columns = Width >= 500 and 2 or 1
+    local CellWidth = math.floor((Width - ((Columns - 1) * 6)) / Columns)
+
+    self.GridLayout.FillDirectionMaxCells = Columns
+    self.GridLayout.CellSize = UDim2.fromOffset(CellWidth, 34)
+end
+
+function DropdownPicker:IsSelected(Value)
+    if not self.Config then
+        return false
+    end
+
+    if self.Config.Dropdown.Multi then
+        return self.Draft[Value] == true
+    end
+
+    return self.Draft == Value
+end
+
+function DropdownPicker:GetSelectedCount()
+    if not self.Config then
+        return 0
+    elseif not self.Config.Dropdown.Multi then
+        return self.Draft and 1 or 0
+    end
+
+    local Count = 0
+
+    for _, Value in self.Config.Dropdown.Values do
+        if self.Draft[Value] then
+            Count = Count + 1
+        end
+    end
+
+    return Count
+end
+
+function DropdownPicker:SetDraftFromDropdown()
+    if not self.Config then
+        return
+    end
+
+    local Dropdown = self.Config.Dropdown
+
+    if Dropdown.Multi then
+        self.Draft = {}
+
+        for _, Value in Dropdown.Values do
+            if Dropdown.Value[Value] then
+                self.Draft[Value] = true
+            end
+        end
+    else
+        self.Draft = Dropdown.Value
+    end
+end
+
+function DropdownPicker:NormalizeDraft()
+    if not self.Config then
+        return
+    end
+
+    local Dropdown = self.Config.Dropdown
+
+    if Dropdown.Multi then
+        local ValidDraft = {}
+
+        for _, Value in Dropdown.Values do
+            if self.Draft[Value] then
+                ValidDraft[Value] = true
+            end
+        end
+
+        self.Draft = ValidDraft
+    elseif not table.find(Dropdown.Values, self.Draft) then
+        self.Draft = nil
+    end
+end
+
+function DropdownPicker:UpdateRow(Row)
+    local Selected = self:IsSelected(Row.Value)
+
+    Row.Container.BackgroundTransparency = Row.Disabled and 1
+        or Selected and (Row.Hovering and 0.68 or 0.76)
+        or Row.Hovering and 0.89
+        or 1
+
+    Row.Stroke.Transparency = Row.Disabled and 1
+        or Selected and 0.42
+        or Row.Hovering and 0.72
+        or 1
+
+    Row.Label.TextTransparency = Row.Disabled and 0.75
+        or Selected and 0
+        or Row.Hovering and 0.08
+        or 0.3
+
+    Row.Check.ImageTransparency = Selected and (Row.Disabled and 0.7 or 0) or 1
+
+    if Row.Image then
+        Row.Image.ImageTransparency = Row.Disabled and 0.78
+            or Selected and 0
+            or Row.Hovering and 0.08
+            or 0.32
+    end
+end
+
+function DropdownPicker:RefreshRows()
+    if not self.Config then
+        return
+    end
+
+    local Query = tostring(self.SearchBox.Text or ""):lower()
+    local VisibleCount = 0
+
+    for _, Row in self.Rows do
+        local Matches = Query == "" or Row.SearchText:find(Query, 1, true) ~= nil
+        local Selected = self:IsSelected(Row.Value)
+
+        Row.Container.Visible = Matches and (not self.SelectedOnly or Selected)
+        VisibleCount = VisibleCount + (Row.Container.Visible and 1 or 0)
+
+        self:UpdateRow(Row)
+    end
+
+    local SelectedCount = self:GetSelectedCount()
+    local TotalCount = #self.Config.Dropdown.Values
+
+    self.CountLabel.Text = tostring(SelectedCount) .. " selected"
+
+    self.SummaryLabel.Text = string.format(
+        "%d of %d selected  •  %d shown",
+        SelectedCount,
+        TotalCount,
+        VisibleCount
+    )
+
+    self.EmptyLabel.Text = Query ~= "" and "No matching options"
+        or self.SelectedOnly and "No selected options"
+        or "No options available"
+
+    self.EmptyLabel.Visible = VisibleCount == 0
+
+    self.AllButton.BackgroundTransparency = self.SelectedOnly and 0.92 or 0.72
+    self.AllButton.TextTransparency = self.SelectedOnly and 0.22 or 0
+    self.SelectedButton.BackgroundTransparency = self.SelectedOnly and 0.72 or 0.92
+    self.SelectedButton.TextTransparency = self.SelectedOnly and 0 or 0.22
+end
+
+function DropdownPicker:RebuildRows()
+    if not self.Config then
+        return
+    end
+
+    for _, Row in self.Rows do
+        if Row.Container then
+            Row.Container:Destroy()
+        end
+    end
+
+    table.clear(self.Rows)
+    self:NormalizeDraft()
+
+    local Dropdown = self.Config.Dropdown
+    local Info = self.Config.Info
+    local PickerCheckIcon = Library:GetIcon("check")
+
+    for Index, Value in Dropdown.Values do
+        local FormattedValue = tostring(
+            Info.FormatListValue and Info.FormatListValue(Value) or Value
+        )
+
+        local IsDisabled = table.find(Dropdown.DisabledValues, Value) ~= nil
+        local ValueImage = self.Config.GetValueImage(Value)
+
+        local Row = {
+            Value = Value,
+            Disabled = IsDisabled,
+            Hovering = false,
+            SearchText = FormattedValue:lower(),
+        }
+
+        Row.Container = New("TextButton", {
+            Active = not IsDisabled,
+            BackgroundColor3 = "AccentColor",
+            BackgroundTransparency = 1,
+            LayoutOrder = Index,
+            Size = UDim2.fromOffset(280, 34),
+            Text = "",
+            ZIndex = self.Grid.ZIndex + 1,
+            Parent = self.Grid,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(0, 7),
+            Parent = Row.Container,
+        })
+
+        Row.Stroke = New("UIStroke", {
+            Color = "AccentColor",
+            Transparency = 1,
+            Parent = Row.Container,
+        })
+
+        if ValueImage then
+            Row.Image = New("ImageLabel", {
+                Image = ValueImage.Url,
+                ImageRectOffset = ValueImage.ImageRectOffset or Vector2.zero,
+                ImageRectSize = ValueImage.ImageRectSize or Vector2.zero,
+                ImageTransparency = 0.32,
+                Position = UDim2.fromOffset(9, 8),
+                Size = UDim2.fromOffset(18, 18),
+                ZIndex = Row.Container.ZIndex + 1,
+                Parent = Row.Container,
+            })
+        end
+
+        Row.Label = New("TextLabel", {
+            BackgroundTransparency = 1,
+            Position = ValueImage and UDim2.fromOffset(34, 0) or UDim2.fromOffset(10, 0),
+            Size = ValueImage and UDim2.new(1, -70, 1, 0) or UDim2.new(1, -46, 1, 0),
+            Text = FormattedValue,
+            TextSize = 13,
+            TextTransparency = 0.3,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = Row.Container.ZIndex + 1,
+            Parent = Row.Container,
+        })
+
+        Row.Check = New("ImageLabel", {
+            AnchorPoint = Vector2.new(1, 0.5),
+            Image = PickerCheckIcon and PickerCheckIcon.Url or "",
+            ImageColor3 = "FontColor",
+            ImageRectOffset = PickerCheckIcon and PickerCheckIcon.ImageRectOffset or Vector2.zero,
+            ImageRectSize = PickerCheckIcon and PickerCheckIcon.ImageRectSize or Vector2.zero,
+            ImageTransparency = 1,
+            Position = UDim2.new(1, -10, 0.5, 0),
+            Size = UDim2.fromOffset(15, 15),
+            ZIndex = Row.Container.ZIndex + 1,
+            Parent = Row.Container,
+        })
+
+        Row.Container.MouseEnter:Connect(function()
+            if not Row.Disabled then
+                Row.Hovering = true
+                self:UpdateRow(Row)
+            end
+        end)
+
+        Row.Container.MouseLeave:Connect(function()
+            Row.Hovering = false
+            self:UpdateRow(Row)
+        end)
+
+        Row.Container.MouseButton1Click:Connect(function()
+            if Row.Disabled or not self.Config then
+                return
+            end
+
+            if Dropdown.Multi then
+                local Selected = self.Draft[Row.Value] == true
+
+                if Selected and not Info.AllowNull and self:GetSelectedCount() <= 1 then
+                    return
+                end
+
+                self.Draft[Row.Value] = not Selected and true or nil
+                self:RefreshRows()
+            else
+                self.Draft = self.Draft == Row.Value and Info.AllowNull and nil or Row.Value
+
+                local ValueToApply = self.Draft
+
+                self:Close()
+                Dropdown:SetValue(ValueToApply)
+            end
+        end)
+
+        table.insert(self.Rows, Row)
+    end
+
+    self:UpdateGrid()
+    self:RefreshRows()
+end
+
+function DropdownPicker:Apply()
+    if not (self.Config and self.Config.Dropdown.Multi) then
+        return
+    end
+
+    if not self.Config.Info.AllowNull and self:GetSelectedCount() == 0 then
+        for _, Row in self.Rows do
+            if not Row.Disabled then
+                self.Draft[Row.Value] = true
+                break
+            end
+        end
+    end
+
+    local Dropdown = self.Config.Dropdown
+    local Draft = self.Draft
+
+    self:Close()
+    Dropdown:SetValue(Draft)
+end
+
+function DropdownPicker:Open(Config)
+    self:Create()
+
+    if self.Active then
+        self:Close()
+    end
+
+    Library:CloseCurrentMenu()
+
+    self.Config = Config
+    self.SelectedOnly = false
+    self.Active = true
+    self.AnimationToken = self.AnimationToken + 1
+
+    self:SetDraftFromDropdown()
+
+    self.Title.Text = tostring(
+        Config.Info.PickerTitle
+        or Config.Dropdown.Text
+        or (Config.Dropdown.Multi and "Select options" or "Select option")
+    )
+
+    self.SelectShownButton.Visible = Config.Dropdown.Multi
+    self.ClearButton.Visible = Config.Dropdown.Multi
+    self.ApplyButton.Visible = Config.Dropdown.Multi
+    self.CancelButton.Text = Config.Dropdown.Multi and "Cancel" or "Close"
+
+    self.SearchBox.Text = ""
+    self.Grid.CanvasPosition = Vector2.zero
+
+    self:RebuildRows()
+    Config.Dropdown:SetOpenState(true, false)
+
+    StopTween(self.OverlayTween)
+    StopTween(self.PanelTween)
+    StopTween(self.ScaleTween)
+
+    self.Overlay.Visible = true
+    self.Panel.Visible = true
+    self.Overlay.BackgroundTransparency = 1
+    self.Panel.GroupTransparency = 1
+    self.Panel.Position = UDim2.new(0.5, 0, 0.5, 8)
+    self.PanelScale.Scale = 0.96
+
+    local OpenInfo = TweenInfo.new(
+        0.14,
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out
+    )
+
+    self.OverlayTween = TweenService:Create(self.Overlay, OpenInfo, {
+        BackgroundTransparency = 0.38,
+    })
+
+    self.PanelTween = TweenService:Create(self.Panel, OpenInfo, {
+        GroupTransparency = 0,
+        Position = UDim2.fromScale(0.5, 0.5),
+    })
+
+    self.ScaleTween = TweenService:Create(self.PanelScale, OpenInfo, {
+        Scale = 1,
+    })
+
+    self.OverlayTween:Play()
+    self.PanelTween:Play()
+    self.ScaleTween:Play()
+
+    if not Library.IsMobile then
+        task.defer(function()
+            if self.Active then
+                self.SearchBox:CaptureFocus()
+            end
+        end)
+    end
+end
+
+function DropdownPicker:Close()
+    if not self.Active then
+        return
+    end
+
+    local ClosingConfig = self.Config
+
+    self.Active = false
+    self.Config = nil
+    self.AnimationToken = self.AnimationToken + 1
+
+    local Token = self.AnimationToken
+
+    if ClosingConfig and ClosingConfig.Dropdown then
+        ClosingConfig.Dropdown:SetOpenState(false, false)
+    end
+
+    self.SearchBox:ReleaseFocus()
+
+    StopTween(self.OverlayTween)
+    StopTween(self.PanelTween)
+    StopTween(self.ScaleTween)
+
+    local CloseInfo = TweenInfo.new(
+        0.11,
+        Enum.EasingStyle.Quad,
+        Enum.EasingDirection.Out
+    )
+
+    self.OverlayTween = TweenService:Create(self.Overlay, CloseInfo, {
+        BackgroundTransparency = 1,
+    })
+
+    self.PanelTween = TweenService:Create(self.Panel, CloseInfo, {
+        GroupTransparency = 1,
+        Position = UDim2.new(0.5, 0, 0.5, 6),
+    })
+
+    self.ScaleTween = TweenService:Create(self.PanelScale, CloseInfo, {
+        Scale = 0.97,
+    })
+
+    self.OverlayTween:Play()
+    self.PanelTween:Play()
+    self.ScaleTween:Play()
+
+    task.delay(0.12, function()
+        if not self.Active and self.AnimationToken == Token then
+            self.Overlay.Visible = false
+            self.Panel.Visible = false
+        end
+    end)
+end
+
+function Library:OpenDropdownPicker(Config)
+    DropdownPicker:Open(Config)
+end
+
+function Library:CloseDropdownPicker(Dropdown)
+    if not DropdownPicker.Active then
+        return false
+    end
+
+    if Dropdown and (
+        not DropdownPicker.Config
+        or DropdownPicker.Config.Dropdown ~= Dropdown
+    ) then
+        return false
+    end
+
+    DropdownPicker:Close()
+
+    return true
+end
+
+function Library:IsDropdownPickerOpen(Dropdown)
+    return DropdownPicker.Active
+        and DropdownPicker.Config
+        and DropdownPicker.Config.Dropdown == Dropdown
+end
+
+function Library:RefreshDropdownPicker(Dropdown, ResetDraft)
+    if not Library:IsDropdownPickerOpen(Dropdown) then
+        return false
+    end
+
+    if ResetDraft then
+        DropdownPicker:SetDraftFromDropdown()
+    end
+
+    DropdownPicker:RebuildRows()
+
+    return true
+end
+
 Library:GiveSignal(UserInputService.InputBegan:Connect(function(Input: InputObject)
 
     if Library.Unloaded then
+        return
+    end
+
+    if DropdownPicker.Active
+    and Input.KeyCode == Enum.KeyCode.Escape then
+        DropdownPicker:Close()
         return
     end
 
@@ -14981,6 +15892,10 @@ do
             ValueImages = Info.ValueImages,
 
             Multi = Info.Multi,
+            Popout = Info.Popout,
+            PopoutThreshold = Info.PopoutThreshold,
+            PickerTitle = Info.PickerTitle,
+            Open = false,
 
             SpecialType = Info.SpecialType,
             ExcludeLocalPlayer = Info.ExcludeLocalPlayer,
@@ -15128,8 +16043,8 @@ do
                     ValueImage = { Url = string.format("rbxthumb://type=AvatarHeadShot&id=%s&w=48&h=48", tostring(Value.UserId)) }
                 end
             else
-                if Info.ValueImages and Info.ValueImages[Value] then
-                    ValueImage = Library:GetCustomIcon(Info.ValueImages[Value])
+                if Dropdown.ValueImages and Dropdown.ValueImages[Value] then
+                    ValueImage = Library:GetCustomIcon(Dropdown.ValueImages[Value])
                 end
             end
 
@@ -15146,57 +16061,68 @@ do
             end,
             2,
             function(Active: boolean)
-                DisplayButton.TextTransparency =
-                    (Active and SearchBox)
-                    and 1
-                    or 0
-
-                ArrowImage.ImageTransparency =
-                    Active and 0 or 0.5
-
-                ArrowImage.Rotation =
-                    Active and 180 or 0
-
-                TweenService:Create(
-                    DisplayContainer,
-                    Library.TweenInfo,
-                    {
-                        BackgroundColor3 = Active
-                            and Library:GetBetterColor(
-                                Library.Scheme.MainColor,
-                                3
-                            )
-                            or Library.Scheme.MainColor,
-                    }
-                ):Play()
-
-                TweenService:Create(
-                    DisplayStroke,
-                    Library.TweenInfo,
-                    {
-                        Color = Active
-                            and Library.Scheme.AccentColor
-                            or Library.Scheme.OutlineColor,
-
-                        Thickness =
-                            Active and 1.5 or 1,
-
-                        Transparency = 0,
-                    }
-                ):Play()
-
-                if SearchBox then
-                    SearchBox.Text = ""
-                    SearchBox.Visible = Active
+                if Dropdown.SetOpenState then
+                    Dropdown:SetOpenState(Active, true)
                 end
             end,
-            true
+            false
         )
         Dropdown.Menu = MenuTable
+        MenuTable.Menu.ClipsDescendants = true
+        MenuTable.Menu.ScrollBarThickness = 2
+        MenuTable.List.Padding = UDim.new(0, 2)
+
+        New("UIPadding", {
+            PaddingBottom = UDim.new(0, 4),
+            PaddingLeft = UDim.new(0, 4),
+            PaddingRight = UDim.new(0, 4),
+            PaddingTop = UDim.new(0, 4),
+            Parent = MenuTable.Menu,
+        })
+
+        function Dropdown:SetOpenState(Active, Compact)
+            Dropdown.Open = Active == true
+
+            DisplayButton.TextTransparency = Dropdown.Disabled and 0.8
+                or Dropdown.Open and Compact and SearchBox and 1
+                or 0
+
+            TweenService:Create(ArrowImage, Library.TweenInfo, {
+                ImageTransparency = Dropdown.Disabled and 0.8 or Dropdown.Open and 0 or 0.5,
+                Rotation = Dropdown.Open and 180 or 0,
+            }):Play()
+
+            TweenService:Create(DisplayContainer, Library.TweenInfo, {
+                BackgroundColor3 = Dropdown.Open
+                    and Library:GetBetterColor(Library.Scheme.MainColor, 3)
+                    or Library.Scheme.MainColor,
+            }):Play()
+
+            TweenService:Create(DisplayStroke, Library.TweenInfo, {
+                Color = Dropdown.Open and Library.Scheme.AccentColor or Library.Scheme.OutlineColor,
+                Thickness = Dropdown.Open and 1.5 or 1,
+                Transparency = 0,
+            }):Play()
+
+            if SearchBox then
+                SearchBox.Text = ""
+                SearchBox.Visible = Dropdown.Open and Compact == true
+            end
+        end
+
+        function Dropdown:UsesPopout()
+            if Info.Popout ~= nil then
+                return Info.Popout == true
+            end
+
+            return Info.Multi == true
+                or Info.Searchable == true
+                or #Dropdown.Values > (tonumber(Info.PopoutThreshold) or 8)
+        end
 
         DisplayContainer.MouseEnter:Connect(function()
             if Dropdown.Disabled
-            or MenuTable.Active then
+            or Dropdown.Open then
                 return
             end
 
@@ -15225,7 +16151,7 @@ do
         end)
 
         DisplayContainer.MouseLeave:Connect(function()
-            if MenuTable.Active then
+            if Dropdown.Open then
                 return
             end
 
@@ -15251,10 +16177,12 @@ do
         end)
 
         function Dropdown:RecalculateListSize(Count)
-            local Y = math.clamp((Count or GetTableSize(Dropdown.Values)) * 21, 0, Info.MaxVisibleDropdownItems * 21)
+            local ItemCount = Count or GetTableSize(Dropdown.Values)
+            local VisibleCount = math.clamp(ItemCount, 0, Info.MaxVisibleDropdownItems)
+            local Y = VisibleCount > 0 and (VisibleCount * 28) + 6 or 0
 
             MenuTable:SetSize(function()
-                return UDim2.fromOffset((DisplayContainer.AbsoluteSize.X / Library.DPIScale) + 1, Y)
+                return UDim2.fromOffset(DisplayContainer.AbsoluteSize.X / Library.DPIScale, Y)
             end)
         end
 
@@ -15264,9 +16192,11 @@ do
             end
 
             Label.TextTransparency = Dropdown.Disabled and 0.8 or 0
-            DisplayButton.TextTransparency = Dropdown.Disabled and 0.8 or 0
+            DisplayButton.TextTransparency = Dropdown.Disabled and 0.8
+                or Dropdown.Open and MenuTable.Active and SearchBox and 1
+                or 0
             DisplayImage.ImageTransparency = Dropdown.Disabled and 0.8 or 0
-            ArrowImage.ImageTransparency = Dropdown.Disabled and 0.8 or MenuTable.Active and 0 or 0.5
+            ArrowImage.ImageTransparency = Dropdown.Disabled and 0.8 or Dropdown.Open and 0 or 0.5
         end
 
         function Dropdown:Display()
@@ -15278,33 +16208,42 @@ do
             local ValueImage = nil
 
             if Info.Multi then
+                local SelectedValues = {}
+
                 for _, Value in Dropdown.Values do
                     if Dropdown.Value[Value] then
                         if not ValueImage then
                             ValueImage = GetValueImage(Value)
                         end
 
-                        Str = Str
-                            .. (Info.FormatDisplayValue and tostring(Info.FormatDisplayValue(Value)) or tostring(Value))
-                            .. ", "
+                        table.insert(
+                            SelectedValues,
+                            Info.FormatDisplayValue
+                                and tostring(Info.FormatDisplayValue(Value))
+                                or tostring(Value)
+                        )
                     end
                 end
 
-                Str = Str:sub(1, #Str - 2)
+                if #SelectedValues > 2 then
+                    Str = table.concat(SelectedValues, ", ", 1, 2)
+                        .. " +"
+                        .. tostring(#SelectedValues - 2)
+                else
+                    Str = table.concat(SelectedValues, ", ")
+                end
             else
                 ValueImage = GetValueImage(Dropdown.Value)
                 Str = Dropdown.Value and tostring(Dropdown.Value) or ""
 
                 if Str ~= "" and Info.FormatDisplayValue then
-                    Str = tostring(Info.FormatDisplayValue(Str))
+                    Str = tostring(Info.FormatDisplayValue(Dropdown.Value))
                 end
             end
 
-            if #Str > 25 then
-                Str = Str:sub(1, 22) .. "..."
-            end
-
-            DisplayButton.Text = (Str == "" and "---" or Str)
+            DisplayButton.Text = Str == ""
+                and (Info.Multi and "Select options" or "Select option")
+                or Str
             
             if ValueImage then
                 DisplayImage.Image = ValueImage.Url
@@ -15316,8 +16255,9 @@ do
                 DisplayImage.ImageTransparency = 1
             end
 
-            DisplayButton.Size = ValueImage and UDim2.new(1, -8, 0, 21) or UDim2.new(1, 0, 0, 21)
+            DisplayButton.Size = ValueImage and UDim2.new(1, -36, 0, 21) or UDim2.new(1, -20, 0, 21)
             DisplayButton.Position = ValueImage and UDim2.fromOffset(14, 0) or UDim2.fromOffset(0, 0)
+            DisplayButton.TextTruncate = Enum.TextTruncate.AtEnd
         end
 
         function Dropdown:OnChanged(Func)
@@ -15351,22 +16291,41 @@ do
             local Count = 0
             for _, Value in Values do
                 local FormattedValue = tostring(Info.FormatListValue and Info.FormatListValue(Value) or Value)
-                if SearchBox and not FormattedValue:lower():match(SearchBox.Text:lower()) then
+
+                if SearchBox
+                and not FormattedValue:lower():find(
+                    SearchBox.Text:lower(),
+                    1,
+                    true
+                ) then
                     continue
                 end
 
                 Count = Count + 1
 
                 local IsDisabled = table.find(DisabledValues, Value)
-                local Table = {}
+                local Table = {
+                    Hovering = false,
+                }
                 local ValueImage = GetValueImage(Value)
 
                 local Container = New("Frame", {
-                    BackgroundColor3 = "MainColor",
+                    BackgroundColor3 = "AccentColor",
                     BackgroundTransparency = 1,
                     LayoutOrder = IsDisabled and 1 or 0,
-                    Size = UDim2.new(1, 0, 0, 21),
+                    Size = UDim2.new(1, 0, 0, 26),
                     Parent = MenuTable.Menu,
+                })
+
+                New("UICorner", {
+                    CornerRadius = UDim.new(0, 6),
+                    Parent = Container,
+                })
+
+                local RowStroke = New("UIStroke", {
+                    Color = "AccentColor",
+                    Transparency = 1,
+                    Parent = Container,
                 })
 
                 local Image = ValueImage and New("ImageLabel", {
@@ -15374,29 +16333,44 @@ do
                     Image = ValueImage.Url,
                     ImageRectOffset = ValueImage.ImageRectOffset,
                     ImageRectSize = ValueImage.ImageRectSize,
-                    ImageTransparency = 0.5,
+                    ImageTransparency = 0.38,
                     Size = UDim2.fromOffset(16, 16),
-                    Position = UDim2.fromOffset(4, 3),
+                    Position = UDim2.fromOffset(6, 5),
                     Parent = Container,
                 })
 
                 local Button = New("TextButton", {
                     BackgroundTransparency = 1,
-                    Size = ValueImage and UDim2.new(1, -18, 0, 21) or UDim2.new(1, 0, 0, 21),
-                    Position = ValueImage and UDim2.fromOffset(18, 0) or UDim2.fromOffset(0, 0),
+                    Size = ValueImage and UDim2.new(1, -22, 1, 0) or UDim2.fromScale(1, 1),
+                    Position = ValueImage and UDim2.fromOffset(22, 0) or UDim2.fromOffset(0, 0),
                     Text = FormattedValue,
-                    TextSize = 14,
-                    TextTransparency = 0.5,
+                    TextSize = 13,
+                    TextTransparency = 0.38,
+                    TextTruncate = Enum.TextTruncate.AtEnd,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = Container,
                 })
+
                 New("UIPadding", {
                     PaddingLeft = UDim.new(0, 7),
-                    PaddingRight = UDim.new(0, 7),
+                    PaddingRight = UDim.new(0, 28),
                     Parent = Button,
                 })
 
+                local CheckImage = New("ImageLabel", {
+                    AnchorPoint = Vector2.new(1, 0.5),
+                    Image = CheckIcon and CheckIcon.Url or "",
+                    ImageColor3 = "FontColor",
+                    ImageRectOffset = CheckIcon and CheckIcon.ImageRectOffset or Vector2.zero,
+                    ImageRectSize = CheckIcon and CheckIcon.ImageRectSize or Vector2.zero,
+                    ImageTransparency = 1,
+                    Position = UDim2.new(1, -7, 0.5, 0),
+                    Size = UDim2.fromOffset(14, 14),
+                    Parent = Container,
+                })
+
                 local Selected
+
                 if Info.Multi then
                     Selected = Dropdown.Value[Value]
                 else
@@ -15410,13 +16384,42 @@ do
                         Selected = Dropdown.Value == Value
                     end
 
-                    Container.BackgroundTransparency = Selected and 0 or 1
-                    Button.TextTransparency = IsDisabled and 0.8 or Selected and 0 or 0.5
+                    Container.BackgroundTransparency = IsDisabled and 1
+                        or Selected and (Table.Hovering and 0.68 or 0.78)
+                        or Table.Hovering and 0.9
+                        or 1
+
+                    RowStroke.Transparency = IsDisabled and 1
+                        or Selected and 0.48
+                        or Table.Hovering and 0.76
+                        or 1
+
+                    Button.TextTransparency = IsDisabled and 0.8
+                        or Selected and 0
+                        or Table.Hovering and 0.08
+                        or 0.38
+
+                    CheckImage.ImageTransparency = Selected and (IsDisabled and 0.7 or 0) or 1
 
                     if Image then
-                        Image.ImageTransparency = IsDisabled and 0.8 or Selected and 0 or 0.5
+                        Image.ImageTransparency = IsDisabled and 0.8
+                            or Selected and 0
+                            or Table.Hovering and 0.08
+                            or 0.38
                     end
                 end
+
+                Button.MouseEnter:Connect(function()
+                    if not IsDisabled then
+                        Table.Hovering = true
+                        Table:UpdateButton()
+                    end
+                end)
+
+                Button.MouseLeave:Connect(function()
+                    Table.Hovering = false
+                    Table:UpdateButton()
+                end)
 
                 if not IsDisabled then
                     Button.MouseButton1Click:Connect(function()
@@ -15424,6 +16427,7 @@ do
 
                         if not (Dropdown:GetActiveValues() == 1 and not Try and not Info.AllowNull) then
                             Selected = Try
+
                             if Info.Multi then
                                 Dropdown.Value[Value] = Selected and true or nil
                             else
@@ -15441,6 +16445,10 @@ do
                         Library:UpdateDependencyBoxes()
                         Library:SafeCallback(Dropdown.Callback, Dropdown.Value)
                         Library:SafeCallback(Dropdown.Changed, Dropdown.Value)
+
+                        if not Info.Multi then
+                            MenuTable:Close()
+                        end
                     end)
                 end
 
@@ -15478,6 +16486,7 @@ do
             for _, Button in Buttons do
                 Button:UpdateButton()
             end
+            Library:RefreshDropdownPicker(Dropdown, true)
 
             if not Dropdown.Disabled then
                 Library:UpdateDependencyBoxes()
@@ -15489,6 +16498,7 @@ do
         function Dropdown:SetValues(Values)
             Dropdown.Values = Values
             Dropdown:BuildDropdownList()
+            Library:RefreshDropdownPicker(Dropdown, false)
         end
 
         function Dropdown:AddValues(Values)
@@ -15503,11 +16513,13 @@ do
             end
 
             Dropdown:BuildDropdownList()
+            Library:RefreshDropdownPicker(Dropdown, false)
         end
 
         function Dropdown:SetDisabledValues(DisabledValues)
             Dropdown.DisabledValues = DisabledValues
             Dropdown:BuildDropdownList()
+            Library:RefreshDropdownPicker(Dropdown, false)
         end
 
         function Dropdown:AddDisabledValues(DisabledValues)
@@ -15522,6 +16534,7 @@ do
             end
 
             Dropdown:BuildDropdownList()
+            Library:RefreshDropdownPicker(Dropdown, false)
         end
 
         function Dropdown:SetValueImages(ValueImages)
@@ -15531,6 +16544,7 @@ do
             
             Dropdown.ValueImages = ValueImages
             Dropdown:BuildDropdownList()
+            Library:RefreshDropdownPicker(Dropdown, false)
         end
 
         function Dropdown:AddValueImages(ValueImages)
@@ -15543,6 +16557,7 @@ do
             end
             
             Dropdown:BuildDropdownList()
+            Library:RefreshDropdownPicker(Dropdown, false)
         end
 
         function Dropdown:SetDisabled(Disabled: boolean)
@@ -15553,6 +16568,7 @@ do
             end
 
             MenuTable:Close()
+            Library:CloseDropdownPicker(Dropdown)
             DisplayButton.Active = not Dropdown.Disabled
             Dropdown:UpdateColors()
         end
@@ -15561,6 +16577,11 @@ do
             Dropdown.Visible = Visible
 
             Holder.Visible = Dropdown.Visible
+
+            if not Dropdown.Visible then
+                Library:CloseDropdownPicker(Dropdown)
+            end
+
             Groupbox:Resize()
         end
 
@@ -15577,7 +16598,19 @@ do
                 return
             end
 
-            MenuTable:Toggle()
+            if Dropdown:UsesPopout() then
+                if Library:IsDropdownPickerOpen(Dropdown) then
+                    Library:CloseDropdownPicker(Dropdown)
+                else
+                    Library:OpenDropdownPicker({
+                        Dropdown = Dropdown,
+                        Info = Info,
+                        GetValueImage = GetValueImage,
+                    })
+                end
+            else
+                MenuTable:Toggle()
+            end
         end
 
         DisplayContainer.MouseButton1Click:Connect(ToggleDropdown)
