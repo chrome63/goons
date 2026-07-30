@@ -9922,25 +9922,108 @@ do
         end
 
         local function InitEvents(Button)
+            local Hovering = false
+
+            local function Animate(
+                BackgroundColor,
+                TextTransparency,
+                StrokeColor,
+                StrokeTransparency
+            )
+                StopTween(Button.Tween)
+                StopTween(Button.StrokeTween)
+
+                Button.Tween = TweenService:Create(
+                    Button.Base,
+                    Library.TweenInfo,
+                    {
+                        BackgroundColor3 = BackgroundColor,
+                        TextTransparency = TextTransparency,
+                    }
+                )
+
+                Button.StrokeTween = TweenService:Create(
+                    Button.Stroke,
+                    Library.TweenInfo,
+                    {
+                        Color = StrokeColor,
+                        Transparency = StrokeTransparency,
+                    }
+                )
+
+                Button.Tween:Play()
+                Button.StrokeTween:Play()
+            end
+
             Button.Base.MouseEnter:Connect(function()
                 if Button.Disabled then
                     return
                 end
 
-                Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    TextTransparency = 0,
-                })
-                Button.Tween:Play()
+                Hovering = true
+
+                Animate(
+                    Library:GetBetterColor(
+                        Library.Scheme.MainColor,
+                        3
+                    ),
+                    0.05,
+                    Library.Scheme.AccentColor,
+                    0.35
+                )
             end)
+
             Button.Base.MouseLeave:Connect(function()
                 if Button.Disabled then
                     return
                 end
 
-                Button.Tween = TweenService:Create(Button.Base, Library.TweenInfo, {
-                    TextTransparency = 0.35,
-                })
-                Button.Tween:Play()
+                Hovering = false
+
+                Animate(
+                    Library.Scheme.MainColor,
+                    0.35,
+                    Library.Scheme.OutlineColor,
+                    0
+                )
+            end)
+
+            Button.Base.InputBegan:Connect(function(Input)
+                if Button.Disabled
+                or not IsClickInput(Input) then
+                    return
+                end
+
+                Animate(
+                    Library:GetBetterColor(
+                        Library.Scheme.MainColor,
+                        7
+                    ),
+                    0,
+                    Library.Scheme.AccentColor,
+                    0.1
+                )
+            end)
+
+            Button.Base.InputEnded:Connect(function(Input)
+                if Button.Disabled
+                or not IsMouseInput(Input) then
+                    return
+                end
+
+                Animate(
+                    Hovering
+                        and Library:GetBetterColor(
+                            Library.Scheme.MainColor,
+                            3
+                        )
+                        or Library.Scheme.MainColor,
+                    Hovering and 0.05 or 0.35,
+                    Hovering
+                        and Library.Scheme.AccentColor
+                        or Library.Scheme.OutlineColor,
+                    Hovering and 0.35 or 0
+                )
             end)
 
             Button.Base.MouseButton1Click:Connect(function()
@@ -12733,6 +12816,12 @@ do
             Size = UDim2.fromOffset(32, 18),
             Parent = Button,
         })
+
+        local SwitchScale = New("UIScale", {
+            Scale = 1,
+            Parent = Switch,
+        })
+
         New("UICorner", {
             CornerRadius = UDim.new(1, 0),
             Parent = Switch,
@@ -12857,6 +12946,45 @@ do
             Toggle.Text = Text
             Label.Text = Text
         end
+
+        Button.InputBegan:Connect(function(Input)
+            if Toggle.Disabled
+            or not IsClickInput(Input) then
+                return
+            end
+
+            TweenService:Create(
+                SwitchScale,
+                Library.TweenInfo,
+                {
+                    Scale = 0.92,
+                }
+            ):Play()
+        end)
+
+        Button.InputEnded:Connect(function(Input)
+            if not IsMouseInput(Input) then
+                return
+            end
+
+            TweenService:Create(
+                SwitchScale,
+                Library.TweenInfo,
+                {
+                    Scale = 1,
+                }
+            ):Play()
+        end)
+
+        Button.MouseLeave:Connect(function()
+            TweenService:Create(
+                SwitchScale,
+                Library.TweenInfo,
+                {
+                    Scale = 1,
+                }
+            ):Play()
+        end)
 
         Button.MouseButton1Click:Connect(function()
             if Toggle.Disabled then
@@ -13054,6 +13182,14 @@ do
 
             TweenService:Create(BoxStroke, Library.TweenInfo, {
                 Color = Library.Scheme.AccentColor,
+                Thickness = 1.5,
+            }):Play()
+
+            TweenService:Create(Box, Library.TweenInfo, {
+                BackgroundColor3 = Library:GetBetterColor(
+                    Library.Scheme.MainColor,
+                    3
+                ),
             }):Play()
         end)
 
@@ -13061,6 +13197,11 @@ do
 
             TweenService:Create(BoxStroke, Library.TweenInfo, {
                 Color = Library.Scheme.OutlineColor,
+                Thickness = 1,
+            }):Play()
+
+            TweenService:Create(Box, Library.TweenInfo, {
+                BackgroundColor3 = Library.Scheme.MainColor,
             }):Play()
         end)
 					
@@ -14906,7 +15047,7 @@ do
             Parent = DisplayContainer,
         })
 
-        New("UIStroke", {
+        local DisplayStroke = New("UIStroke", {
             Color = "OutlineColor",
             Parent = DisplayContainer,
         })
@@ -15005,9 +15146,45 @@ do
             end,
             2,
             function(Active: boolean)
-                DisplayButton.TextTransparency = (Active and SearchBox) and 1 or 0
-                ArrowImage.ImageTransparency = Active and 0 or 0.5
-                ArrowImage.Rotation = Active and 180 or 0
+                DisplayButton.TextTransparency =
+                    (Active and SearchBox)
+                    and 1
+                    or 0
+
+                ArrowImage.ImageTransparency =
+                    Active and 0 or 0.5
+
+                ArrowImage.Rotation =
+                    Active and 180 or 0
+
+                TweenService:Create(
+                    DisplayContainer,
+                    Library.TweenInfo,
+                    {
+                        BackgroundColor3 = Active
+                            and Library:GetBetterColor(
+                                Library.Scheme.MainColor,
+                                3
+                            )
+                            or Library.Scheme.MainColor,
+                    }
+                ):Play()
+
+                TweenService:Create(
+                    DisplayStroke,
+                    Library.TweenInfo,
+                    {
+                        Color = Active
+                            and Library.Scheme.AccentColor
+                            or Library.Scheme.OutlineColor,
+
+                        Thickness =
+                            Active and 1.5 or 1,
+
+                        Transparency = 0,
+                    }
+                ):Play()
+
                 if SearchBox then
                     SearchBox.Text = ""
                     SearchBox.Visible = Active
@@ -15016,6 +15193,62 @@ do
             true
         )
         Dropdown.Menu = MenuTable
+
+        DisplayContainer.MouseEnter:Connect(function()
+            if Dropdown.Disabled
+            or MenuTable.Active then
+                return
+            end
+
+            TweenService:Create(
+                DisplayContainer,
+                Library.TweenInfo,
+                {
+                    BackgroundColor3 =
+                        Library:GetBetterColor(
+                            Library.Scheme.MainColor,
+                            2
+                        ),
+                }
+            ):Play()
+
+            TweenService:Create(
+                DisplayStroke,
+                Library.TweenInfo,
+                {
+                    Color =
+                        Library.Scheme.AccentColor,
+
+                    Transparency = 0.45,
+                }
+            ):Play()
+        end)
+
+        DisplayContainer.MouseLeave:Connect(function()
+            if MenuTable.Active then
+                return
+            end
+
+            TweenService:Create(
+                DisplayContainer,
+                Library.TweenInfo,
+                {
+                    BackgroundColor3 =
+                        Library.Scheme.MainColor,
+                }
+            ):Play()
+
+            TweenService:Create(
+                DisplayStroke,
+                Library.TweenInfo,
+                {
+                    Color =
+                        Library.Scheme.OutlineColor,
+
+                    Transparency = 0,
+                }
+            ):Play()
+        end)
 
         function Dropdown:RecalculateListSize(Count)
             local Y = math.clamp((Count or GetTableSize(Dropdown.Values)) * 21, 0, Info.MaxVisibleDropdownItems * 21)
@@ -17442,7 +17675,7 @@ function Library:CreateWindow(WindowInfo)
                 BackgroundColor3 = "AccentColor",
                 BackgroundTransparency = 1,
                 Position = UDim2.fromOffset(0, 7),
-                Size = UDim2.new(0, 3, 1, -14),
+                Size = UDim2.new(0, 4, 1, -14),
                 ZIndex = TabButton.ZIndex + 1,
                 Parent = TabButton,
             })
@@ -17469,7 +17702,7 @@ function Library:CreateWindow(WindowInfo)
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
                 TextSize = 16,
-                TextTransparency = 0.5,
+                TextTransparency = 0.38,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -17481,7 +17714,7 @@ function Library:CreateWindow(WindowInfo)
                     ImageColor3 = Icon.Custom and "WhiteColor" or "AccentColor",
                     ImageRectOffset = Icon.ImageRectOffset,
                     ImageRectSize = Icon.ImageRectSize,
-                    ImageTransparency = 0.5,
+                    ImageTransparency = 0.38,
                     ScaleType = Enum.ScaleType.Fit,
                     Size = UDim2.fromScale(1, 1),
                     SizeConstraint = IsCompact and Enum.SizeConstraint.RelativeXY or Enum.SizeConstraint.RelativeYY,
@@ -19194,14 +19427,35 @@ function Library:CreateWindow(WindowInfo)
 
 				if Info.Collapsible == true then
 
-                    GroupboxCollapseArrow = New("TextLabel", {
-                        AnchorPoint = Vector2.new(1, 0),
+                    GroupboxCollapseArrow = New("ImageLabel", {
+                        AnchorPoint = Vector2.new(1, 0.5),
                         BackgroundTransparency = 1,
-                        Position = UDim2.new(1, -10, 0, 0),
-                        Size = UDim2.fromOffset(18, 29),
-                        Text = "v",
-                        TextSize = 14,
-                        TextTransparency = 0.45,
+
+                        Image =
+                            ArrowIcon
+                            and ArrowIcon.Url
+                            or "",
+
+                        ImageColor3 = ArrowIcon
+                            and (
+                                ArrowIcon.Custom
+                                and "WhiteColor"
+                                or "AccentColor"
+                            )
+                            or "FontColor",
+
+                        ImageRectOffset = ArrowIcon
+                            and ArrowIcon.ImageRectOffset
+                            or Vector2.zero,
+
+                        ImageRectSize = ArrowIcon
+                            and ArrowIcon.ImageRectSize
+                            or Vector2.zero,
+
+                        ImageTransparency = 0.32,
+                        Position = UDim2.new(1, -10, 0, 14),
+                        Rotation = 180,
+                        Size = UDim2.fromOffset(14, 14),
                         ZIndex = GroupboxHeaderButton.ZIndex + 1,
                         Parent = GroupboxHeaderButton,
                     })
@@ -19267,7 +19521,14 @@ function Library:CreateWindow(WindowInfo)
             )
 
         if GroupboxCollapseArrow then
-            GroupboxCollapseArrow.Text = ">"
+            TweenService:Create(
+                GroupboxCollapseArrow,
+                Library.TweenInfo,
+                {
+                    ImageTransparency = 0.2,
+                    Rotation = 90,
+                }
+            ):Play()
         end
 
         return
@@ -19284,7 +19545,14 @@ function Library:CreateWindow(WindowInfo)
         )
 
     if GroupboxCollapseArrow then
-        GroupboxCollapseArrow.Text = "v"
+        TweenService:Create(
+            GroupboxCollapseArrow,
+            Library.TweenInfo,
+            {
+                ImageTransparency = 0.32,
+                Rotation = 180,
+            }
+        ):Play()
     end
 end
 
@@ -19694,16 +19962,16 @@ end
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = Hovering and 0.7 or 1,
+                BackgroundTransparency = Hovering and 0.62 or 1,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = Hovering and 0.2 or 0.5,
+                TextTransparency = Hovering and 0.14 or 0.38,
             }):Play()
 
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = Hovering and 0.2 or 0.5,
+                    ImageTransparency = Hovering and 0.14 or 0.38,
                 }):Play()
             end
         end
@@ -19714,7 +19982,7 @@ end
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.18,
+                BackgroundTransparency = 0.08,
             }):Play()
 
             TweenService:Create(TabActiveBar, Library.TweenInfo, {
@@ -19755,12 +20023,12 @@ end
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = 0.5,
+                TextTransparency = 0.38,
             }):Play()
 
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = 0.5,
+                    ImageTransparency = 0.38,
                 }):Play()
             end
             TabContainer.Visible = false
