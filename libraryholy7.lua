@@ -259,7 +259,7 @@ local Library = {
     MinSize = Vector2.new(480, 360),
     DPIScale = 1,
 
-    CornerRadius = 6,
+    CornerRadius = 14,
     CornerRadiusDropdown = true,
 
     SharpStyle = true,
@@ -385,6 +385,7 @@ local Templates = {
     },
     UIStroke = {
         ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+        LineJoinMode = Enum.LineJoinMode.Round,
     },
 
     --// Library \\--
@@ -412,7 +413,7 @@ local Templates = {
         TabSwipeOffset = 12,
         TabSwipeFrom = "bottom",
 
-        CornerRadius = 6,
+        CornerRadius = 14,
         NotifySide = "Right",
         ShowCustomCursor = true,
         Font = Enum.Font.GothamMedium,
@@ -3374,7 +3375,7 @@ function Library:AddOutline(Frame: GuiObject)
                     "OuterRimColor",
 
                 LineJoinMode =
-                    Enum.LineJoinMode.Miter,
+                    Enum.LineJoinMode.Round,
 
                 Thickness =
                     2,
@@ -3401,7 +3402,7 @@ function Library:AddOutline(Frame: GuiObject)
                     "InnerBorderColor",
 
                 LineJoinMode =
-                    Enum.LineJoinMode.Miter,
+                    Enum.LineJoinMode.Round,
 
                 Thickness =
                     1,
@@ -16590,7 +16591,11 @@ function Library:CreateWindow(WindowInfo)
     if typeof(WindowInfo.Font) == "EnumItem" then
         WindowInfo.Font = Font.fromEnum(WindowInfo.Font)
     end
-    WindowInfo.CornerRadius = math.min(WindowInfo.CornerRadius, 20)
+    WindowInfo.CornerRadius = math.clamp(
+        tonumber(WindowInfo.CornerRadius) or 14,
+        14,
+        20
+    )
     
     --// Old Naming \\--
     if WindowInfo.Compact ~= nil then
@@ -16638,6 +16643,11 @@ function Library:CreateWindow(WindowInfo)
     local BackgroundImage
     local BottomBackground
     local FooterLabel
+    local ProfileCard
+    local ProfileAvatar
+    local ProfileFallback
+    local ProfileDisplayName
+    local ProfileUsername
 
     local InitialLeftWidth = math.clamp(
         math.ceil(WindowInfo.Size.X.Offset * 0.23),
@@ -16657,6 +16667,7 @@ function Library:CreateWindow(WindowInfo)
             BackgroundColor3 = function()
                 return Library:GetBetterColor(Library.Scheme.BackgroundColor, -1)
             end,
+            ClipsDescendants = true,
             Name = "Main",
             Text = "",
             Position = WindowInfo.Position,
@@ -17012,7 +17023,7 @@ function Library:CreateWindow(WindowInfo)
             CanvasSize = UDim2.fromScale(0, 0),
             Position = UDim2.fromOffset(0, 45),
             ScrollBarThickness = 0,
-            Size = UDim2.new(0, InitialLeftWidth, 1, -70),
+            Size = UDim2.new(0, InitialLeftWidth, 1, -132),
             Parent = MainFrame,
         })
 
@@ -17025,6 +17036,145 @@ function Library:CreateWindow(WindowInfo)
         New("UIListLayout", {
             Parent = Tabs,
         })
+
+        New("UIPadding", {
+            PaddingBottom = UDim.new(0, 4),
+            PaddingLeft = UDim.new(0, 6),
+            PaddingRight = UDim.new(0, 6),
+            PaddingTop = UDim.new(0, 4),
+            Parent = Tabs,
+        })
+
+        ProfileCard = New("Frame", {
+            BackgroundColor3 = "MainColor",
+            BackgroundTransparency = 0.08,
+            Position = UDim2.new(0, 8, 1, -80),
+            Size = UDim2.new(0, InitialLeftWidth - 16, 0, 56),
+            ZIndex = 3,
+            Parent = MainFrame,
+        })
+
+        table.insert(
+            Library.Corners,
+            New("UICorner", {
+                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
+                Parent = ProfileCard,
+            })
+        )
+
+        New("UIStroke", {
+            Color = "OutlineColor",
+            LineJoinMode = Enum.LineJoinMode.Round,
+            Transparency = 0.15,
+            Parent = ProfileCard,
+        })
+
+        Library:RegisterSurface(
+            ProfileCard,
+            "Chrome",
+            0.08
+        )
+
+        ProfileFallback = New("TextLabel", {
+            BackgroundColor3 = "BackgroundColor",
+            Position = UDim2.fromOffset(9, 10),
+            Size = UDim2.fromOffset(36, 36),
+            Text = string.upper(
+                string.sub(
+                    LocalPlayer.DisplayName or LocalPlayer.Name,
+                    1,
+                    1
+                )
+            ),
+            TextSize = 13,
+            ZIndex = 4,
+            Parent = ProfileCard,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(1, 0),
+            Parent = ProfileFallback,
+        })
+
+        ProfileAvatar = New("ImageLabel", {
+            BackgroundColor3 = "BackgroundColor",
+            BackgroundTransparency = 1,
+            Position = UDim2.fromOffset(9, 10),
+            Size = UDim2.fromOffset(36, 36),
+            ZIndex = 5,
+            Parent = ProfileCard,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(1, 0),
+            Parent = ProfileAvatar,
+        })
+
+        local ProfileStatus = New("Frame", {
+            AnchorPoint = Vector2.new(0.5, 0.5),
+            BackgroundColor3 = "SuccessColor",
+            Position = UDim2.new(1, -3, 1, -3),
+            Size = UDim2.fromOffset(10, 10),
+            ZIndex = 6,
+            Parent = ProfileAvatar,
+        })
+
+        New("UICorner", {
+            CornerRadius = UDim.new(1, 0),
+            Parent = ProfileStatus,
+        })
+
+        New("UIStroke", {
+            Color = "MainColor",
+            Thickness = 2,
+            Parent = ProfileStatus,
+        })
+
+        ProfileDisplayName = New("TextLabel", {
+            BackgroundTransparency = 1,
+            Position = UDim2.fromOffset(54, 9),
+            Size = UDim2.new(1, -62, 0, 19),
+            Text = LocalPlayer.DisplayName,
+            TextSize = 13,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 4,
+            Parent = ProfileCard,
+        })
+
+        ProfileUsername = New("TextLabel", {
+            BackgroundTransparency = 1,
+            Position = UDim2.fromOffset(54, 28),
+            Size = UDim2.new(1, -62, 0, 17),
+            Text = "@" .. LocalPlayer.Name,
+            TextSize = 11,
+            TextTransparency = 0.5,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 4,
+            Parent = ProfileCard,
+        })
+
+        task.spawn(function()
+            local Success, Thumbnail = pcall(function()
+                return Players:GetUserThumbnailAsync(
+                    LocalPlayer.UserId,
+                    Enum.ThumbnailType.HeadShot,
+                    Enum.ThumbnailSize.Size100x100
+                )
+            end)
+
+            if Success
+            and type(Thumbnail) == "string"
+            and Thumbnail ~= ""
+            and ProfileAvatar
+            and ProfileAvatar.Parent then
+
+                ProfileAvatar.Image = Thumbnail
+                ProfileAvatar.BackgroundTransparency = 0
+                ProfileFallback.Visible = false
+            end
+        end)
 
         --// Container \\--
         Container = New("Frame", {
@@ -17074,7 +17224,7 @@ function Library:CreateWindow(WindowInfo)
 
     function Window:SetCornerRadius(Radius: number)
         assert(typeof(Radius) == "number", "Expected number for Radius got: " .. typeof(Radius))
-        Radius = math.min(Radius, 20)
+        Radius = math.clamp(Radius, 14, 20)
 
         for _, UICorner in Library.Corners do
             if UICorner.CornerRadius.Offset == Library.CornerRadius / 2 then
@@ -17103,11 +17253,14 @@ function Library:CreateWindow(WindowInfo)
 
     local function ApplyCompact()
         IsCompact = Window:GetSidebarWidth() == WindowInfo.SidebarCompactWidth
+
         if WindowInfo.DisableCompactingSnap then
-            IsCompact = Window:GetSidebarWidth() <= WindowInfo.CompactWidthActivation
+            IsCompact = Window:GetSidebarWidth()
+                <= WindowInfo.CompactWidthActivation
         end
 
         WindowTitle.Visible = not IsCompact
+
         if not WindowInfo.Icon then
             WindowIcon.Visible = IsCompact
         end
@@ -17118,12 +17271,55 @@ function Library:CreateWindow(WindowInfo)
             end
 
             Button.Label.Visible = not IsCompact
-            Button.Padding.PaddingBottom = UDim.new(0, IsCompact and 6 or 11)
-            Button.Padding.PaddingLeft = UDim.new(0, IsCompact and 6 or 12)
-            Button.Padding.PaddingRight = UDim.new(0, IsCompact and 6 or 12)
-            Button.Padding.PaddingTop = UDim.new(0, IsCompact and 6 or 11)
-            Button.Icon.SizeConstraint = IsCompact and Enum.SizeConstraint.RelativeXY or Enum.SizeConstraint.RelativeYY
+
+            Button.Padding.PaddingBottom =
+                UDim.new(0, IsCompact and 6 or 11)
+
+            Button.Padding.PaddingLeft =
+                UDim.new(0, IsCompact and 6 or 12)
+
+            Button.Padding.PaddingRight =
+                UDim.new(0, IsCompact and 6 or 12)
+
+            Button.Padding.PaddingTop =
+                UDim.new(0, IsCompact and 6 or 11)
+
+            Button.Icon.SizeConstraint = IsCompact
+                and Enum.SizeConstraint.RelativeXY
+                or Enum.SizeConstraint.RelativeYY
         end
+
+        ProfileCard.Position = UDim2.new(
+            0,
+            IsCompact and 4 or 8,
+            1,
+            -80
+        )
+
+        ProfileCard.Size = UDim2.new(
+            0,
+            math.max(
+                40,
+                Tabs.Size.X.Offset
+                    - (IsCompact and 8 or 16)
+            ),
+            0,
+            56
+        )
+
+        ProfileAvatar.Position = UDim2.fromOffset(
+            IsCompact and 2 or 9,
+            10
+        )
+
+        ProfileFallback.Position =
+            ProfileAvatar.Position
+
+        ProfileDisplayName.Visible =
+            not IsCompact
+
+        ProfileUsername.Visible =
+            not IsCompact
     end
 
     function Window:IsSidebarCompacted()
@@ -17139,18 +17335,40 @@ function Library:CreateWindow(WindowInfo)
     end
 
     function Window:SetSidebarWidth(Width)
-        Width = math.clamp(Width, 48, MainFrame.Size.X.Offset - WindowInfo.MinContainerWidth - 1)
+        Width = math.clamp(
+            Width,
+            48,
+            MainFrame.Size.X.Offset
+                - WindowInfo.MinContainerWidth
+                - 1
+        )
 
-        DividerLine.Position = UDim2.fromOffset(Width, 0)
+        DividerLine.Position =
+            UDim2.fromOffset(Width, 0)
 
-        TitleHolder.Size = UDim2.new(0, Width, 1, 0)
-        RightWrapper.Size = UDim2.new(1, -Width - 57 - 1, 1, -16)
-        Tabs.Size = UDim2.new(0, Width, 1, -70)
-        Container.Size = UDim2.new(1, -Width - 1, 1, -70)
+        TitleHolder.Size =
+            UDim2.new(0, Width, 1, 0)
+
+        RightWrapper.Size =
+            UDim2.new(1, -Width - 57 - 1, 1, -16)
+
+        Tabs.Size =
+            UDim2.new(0, Width, 1, -132)
+
+        Container.Size =
+            UDim2.new(1, -Width - 1, 1, -70)
 
         if WindowInfo.EnableCompacting then
             ApplyCompact()
+        else
+            ProfileCard.Size = UDim2.new(
+                0,
+                math.max(40, Width - 16),
+                0,
+                56
+            )
         end
+
         if not IsCompact then
             LastExpandedWidth = Width
         end
@@ -17207,6 +17425,17 @@ function Library:CreateWindow(WindowInfo)
                 Text = "",
                 Parent = Tabs,
             })
+
+            table.insert(
+                Library.Corners,
+                New("UICorner", {
+                    CornerRadius = UDim.new(
+                        0,
+                        Library.CornerRadius / 2
+                    ),
+                    Parent = TabButton,
+                })
+            )
 
 			
             TabActiveBar = New("Frame", {
@@ -19600,6 +19829,17 @@ end
                 Text = "",
                 Parent = Tabs,
             })
+
+            table.insert(
+                Library.Corners,
+                New("UICorner", {
+                    CornerRadius = UDim.new(
+                        0,
+                        Library.CornerRadius / 2
+                    ),
+                    Parent = TabButton,
+                })
+            )
             local ButtonPadding = New("UIPadding", {
                 PaddingBottom = UDim.new(0, IsCompact and 6 or 11),
                 PaddingLeft = UDim.new(0, IsCompact and 6 or 12),
