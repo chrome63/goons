@@ -3525,6 +3525,54 @@ function Library:AddDraggableButton(
     local Table =
         {}
 
+    local ElectricStart =
+        Color3.fromRGB(
+            57,
+            91,
+            255
+        )
+
+    local ElectricEnd =
+        Color3.fromRGB(
+            42,
+            222,
+            255
+        )
+
+    local NormalBackground =
+        Color3.fromRGB(
+            8,
+            9,
+            12
+        )
+
+    local HoverBackground =
+        Color3.fromRGB(
+            12,
+            14,
+            20
+        )
+
+    local PressedBackground =
+        Color3.fromRGB(
+            6,
+            8,
+            12
+        )
+
+    local NormalStroke =
+        Color3.fromRGB(
+            33,
+            35,
+            42
+        )
+
+    local DisplayText =
+        tostring(
+            Text
+            or "HOLY"
+        )
+
     local BaseFont =
         Font.fromEnum(
             Enum.Font.Gotham
@@ -3536,6 +3584,11 @@ function Library:AddDraggableButton(
             Enum.FontWeight.ExtraBold,
             Enum.FontStyle.Normal
         )
+
+    local InitialTextSize =
+        #DisplayText <= 1
+        and 27
+        or 24
 
     local Holder =
         New(
@@ -3561,8 +3614,8 @@ function Library:AddDraggableButton(
 
                 Size =
                     UDim2.fromOffset(
-                        80,
-                        38
+                        112,
+                        42
                     ),
 
                 ZIndex =
@@ -3570,6 +3623,57 @@ function Library:AddDraggableButton(
 
                 Parent =
                     ScreenGui,
+            }
+        )
+
+    local VisualHolder =
+        New(
+            "Frame",
+            {
+                Name =
+                    "HolyToggleVisual",
+
+                AnchorPoint =
+                    Vector2.new(
+                        0.5,
+                        0.5
+                    ),
+
+                BackgroundTransparency =
+                    1,
+
+                ClipsDescendants =
+                    false,
+
+                Position =
+                    UDim2.fromScale(
+                        0.5,
+                        0.5
+                    ),
+
+                Size =
+                    UDim2.fromOffset(
+                        112,
+                        42
+                    ),
+
+                ZIndex =
+                    10,
+
+                Parent =
+                    Holder,
+            }
+        )
+
+    local VisualScale =
+        New(
+            "UIScale",
+            {
+                Scale =
+                    1,
+
+                Parent =
+                    VisualHolder,
             }
         )
 
@@ -3588,28 +3692,28 @@ function Library:AddDraggableButton(
                     ),
 
                 BackgroundTransparency =
-                    0.52,
+                    0.56,
 
                 BorderSizePixel =
                     0,
 
                 Position =
                     UDim2.fromOffset(
-                        1,
+                        0,
                         3
                     ),
 
                 Size =
-                    UDim2.fromOffset(
-                        80,
-                        38
+                    UDim2.fromScale(
+                        1,
+                        1
                     ),
 
                 ZIndex =
                     10,
 
                 Parent =
-                    Holder,
+                    VisualHolder,
             }
         )
 
@@ -3619,7 +3723,7 @@ function Library:AddDraggableButton(
             CornerRadius =
                 UDim.new(
                     0,
-                    11
+                    14
                 ),
 
             Parent =
@@ -3641,11 +3745,7 @@ function Library:AddDraggableButton(
                     false,
 
                 BackgroundColor3 =
-                    Color3.fromRGB(
-                        9,
-                        10,
-                        14
-                    ),
+                    NormalBackground,
 
                 BackgroundTransparency =
                     0,
@@ -3666,39 +3766,16 @@ function Library:AddDraggableButton(
                     ),
 
                 Size =
-                    UDim2.fromOffset(
-                        80,
-                        38
+                    UDim2.fromScale(
+                        1,
+                        1
                     ),
 
                 Text =
-                    tostring(
-                        Text
-                        or "HOLY"
-                    ),
+                    DisplayText,
 
-                TextColor3 =
-                    Color3.fromRGB(
-                        255,
-                        255,
-                        255
-                    ),
-
-                TextScaled =
-                    false,
-
-                TextSize =
-                    19,
-
-                TextStrokeColor3 =
-                    Color3.fromRGB(
-                        0,
-                        0,
-                        0
-                    ),
-
-                TextStrokeTransparency =
-                    0,
+                TextTransparency =
+                    1,
 
                 TextWrapped =
                     false,
@@ -3707,7 +3784,7 @@ function Library:AddDraggableButton(
                     11,
 
                 Parent =
-                    Holder,
+                    VisualHolder,
             }
         )
 
@@ -3717,7 +3794,7 @@ function Library:AddDraggableButton(
             CornerRadius =
                 UDim.new(
                     0,
-                    11
+                    14
                 ),
 
             Parent =
@@ -3726,31 +3803,158 @@ function Library:AddDraggableButton(
     )
 
     local ButtonStroke =
-        Instance.new(
-            "UIStroke"
+        New(
+            "UIStroke",
+            {
+                ApplyStrokeMode =
+                    Enum.ApplyStrokeMode.Border,
+
+                Color =
+                    NormalStroke,
+
+                LineJoinMode =
+                    Enum.LineJoinMode.Round,
+
+                Thickness =
+                    1,
+
+                Transparency =
+                    0.05,
+
+                Parent =
+                    Button,
+            }
         )
 
-    ButtonStroke.ApplyStrokeMode =
-        Enum.ApplyStrokeMode.Border
+    local TextShadow =
+        New(
+            "TextLabel",
+            {
+                BackgroundTransparency =
+                    1,
 
-    ButtonStroke.Color =
-        Color3.fromRGB(
-            48,
-            51,
-            60
+                FontFace =
+                    ToggleFont,
+
+                Position =
+                    UDim2.fromOffset(
+                        0,
+                        1
+                    ),
+
+                Size =
+                    UDim2.fromScale(
+                        1,
+                        1
+                    ),
+
+                Text =
+                    DisplayText,
+
+                TextColor3 =
+                    Color3.fromRGB(
+                        0,
+                        0,
+                        0
+                    ),
+
+                TextSize =
+                    InitialTextSize,
+
+                TextTransparency =
+                    0.18,
+
+                TextWrapped =
+                    false,
+
+                ZIndex =
+                    12,
+
+                Parent =
+                    Button,
+            }
         )
 
-    ButtonStroke.LineJoinMode =
-        Enum.LineJoinMode.Round
+    local MainText =
+        New(
+            "TextLabel",
+            {
+                BackgroundTransparency =
+                    1,
 
-    ButtonStroke.Thickness =
-        1
+                FontFace =
+                    ToggleFont,
 
-    ButtonStroke.Transparency =
-        0
+                Position =
+                    UDim2.fromOffset(
+                        0,
+                        0
+                    ),
 
-    ButtonStroke.Parent =
-        Button
+                Size =
+                    UDim2.fromScale(
+                        1,
+                        1
+                    ),
+
+                Text =
+                    DisplayText,
+
+                TextColor3 =
+                    Color3.fromRGB(
+                        255,
+                        255,
+                        255
+                    ),
+
+                TextSize =
+                    InitialTextSize,
+
+                TextStrokeColor3 =
+                    Color3.fromRGB(
+                        0,
+                        0,
+                        0
+                    ),
+
+                TextStrokeTransparency =
+                    0.72,
+
+                TextWrapped =
+                    false,
+
+                ZIndex =
+                    13,
+
+                Parent =
+                    Button,
+            }
+        )
+
+    local TextGradient =
+        New(
+            "UIGradient",
+            {
+                Color =
+                    ColorSequence.new({
+                        ColorSequenceKeypoint.new(
+                            0,
+                            ElectricStart
+                        ),
+
+                        ColorSequenceKeypoint.new(
+                            1,
+                            ElectricEnd
+                        ),
+                    }),
+
+                Rotation =
+                    0,
+
+                Parent =
+                    MainText,
+            }
+        )
 
     if not ExcludeScaling then
 
@@ -3766,62 +3970,326 @@ function Library:AddDraggableButton(
         )
     end
 
+    local Hovering =
+        false
+
+    local Pressing =
+        false
+
+    local PressInput =
+        nil
+
+    local PressStart =
+        nil
+
+    local HolderStart =
+        nil
+
+    local Moved =
+        false
+
+    local function AnimateButton(
+        Scale,
+        BackgroundColor,
+        StrokeColor,
+        StrokeTransparency,
+        ShadowTransparency
+    )
+
+        if not VisualHolder
+        or not VisualHolder.Parent then
+            return
+        end
+
+        TweenService:Create(
+            VisualScale,
+            TweenInfo.new(
+                0.11,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            ),
+            {
+                Scale =
+                    Scale,
+            }
+        ):Play()
+
+        TweenService:Create(
+            Button,
+            TweenInfo.new(
+                0.11,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            ),
+            {
+                BackgroundColor3 =
+                    BackgroundColor,
+            }
+        ):Play()
+
+        TweenService:Create(
+            ButtonStroke,
+            TweenInfo.new(
+                0.11,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            ),
+            {
+                Color =
+                    StrokeColor,
+
+                Transparency =
+                    StrokeTransparency,
+            }
+        ):Play()
+
+        TweenService:Create(
+            Shadow,
+            TweenInfo.new(
+                0.11,
+                Enum.EasingStyle.Quad,
+                Enum.EasingDirection.Out
+            ),
+            {
+                BackgroundTransparency =
+                    ShadowTransparency,
+            }
+        ):Play()
+    end
+
+    local function FinishPress()
+
+        if Pressing ~= true then
+            return
+        end
+
+        Pressing =
+            false
+
+        local ShouldClick =
+            Moved ~= true
+            and Holder.Parent ~= nil
+            and Library.Unloaded ~= true
+
+        if Hovering then
+
+            AnimateButton(
+                1.04,
+                HoverBackground,
+                ElectricStart,
+                0.25,
+                0.48
+            )
+
+        else
+
+            AnimateButton(
+                1,
+                NormalBackground,
+                NormalStroke,
+                0.05,
+                0.56
+            )
+        end
+
+        PressInput =
+            nil
+
+        PressStart =
+            nil
+
+        HolderStart =
+            nil
+
+        if ShouldClick then
+
+            Library:SafeCallback(
+                Func,
+                Table
+            )
+        end
+
+        task.defer(function()
+
+            Moved =
+                false
+        end)
+    end
+
     Library:GiveSignal(
         Button.MouseEnter:Connect(function()
 
-            Button.BackgroundColor3 =
-                Color3.fromRGB(
-                    14,
-                    15,
-                    20
-                )
+            Hovering =
+                true
 
-            ButtonStroke.Color =
-                Color3.fromRGB(
-                    67,
-                    70,
-                    82
-                )
+            if Pressing then
+                return
+            end
+
+            AnimateButton(
+                1.04,
+                HoverBackground,
+                ElectricStart,
+                0.25,
+                0.48
+            )
         end)
     )
 
     Library:GiveSignal(
         Button.MouseLeave:Connect(function()
 
-            Button.BackgroundColor3 =
-                Color3.fromRGB(
-                    9,
-                    10,
-                    14
-                )
+            Hovering =
+                false
 
-            ButtonStroke.Color =
-                Color3.fromRGB(
-                    48,
-                    51,
-                    60
+            if Pressing then
+                return
+            end
+
+            AnimateButton(
+                1,
+                NormalBackground,
+                NormalStroke,
+                0.05,
+                0.56
+            )
+        end)
+    )
+
+    Library:GiveSignal(
+        Button.InputBegan:Connect(function(Input)
+
+            if not IsClickInput(
+                Input
+            ) then
+                return
+            end
+
+            Pressing =
+                true
+
+            Moved =
+                false
+
+            PressInput =
+                Input
+
+            PressStart =
+                Input.Position
+
+            HolderStart =
+                Holder.Position
+
+            AnimateButton(
+                0.94,
+                PressedBackground,
+                ElectricEnd,
+                0.10,
+                0.62
+            )
+
+            local ChangedConnection
+
+            ChangedConnection =
+                Input.Changed:Connect(function()
+
+                    if Input.UserInputState
+                        ~= Enum.UserInputState.End then
+                        return
+                    end
+
+                    FinishPress()
+
+                    if ChangedConnection
+                    and ChangedConnection.Connected then
+
+                        ChangedConnection:Disconnect()
+                    end
+                end)
+        end)
+    )
+
+    Library:GiveSignal(
+        UserInputService.InputChanged:Connect(function(Input)
+
+            if Pressing ~= true
+            or not PressInput
+            or not PressStart
+            or not HolderStart then
+
+                return
+            end
+
+            if PressInput.UserInputType
+                == Enum.UserInputType.Touch then
+
+                if Input ~= PressInput then
+                    return
+                end
+
+            elseif Input.UserInputType
+                ~= Enum.UserInputType.MouseMovement then
+
+                return
+            end
+
+            local Delta =
+                Input.Position
+                - PressStart
+
+            if Moved ~= true
+            and Delta.Magnitude < 7 then
+
+                return
+            end
+
+            Moved =
+                true
+
+            Holder.Position =
+                UDim2.new(
+                    HolderStart.X.Scale,
+                    HolderStart.X.Offset
+                    + Delta.X,
+
+                    HolderStart.Y.Scale,
+                    HolderStart.Y.Offset
+                    + Delta.Y
                 )
         end)
     )
 
     Library:GiveSignal(
-        Button.MouseButton1Click:Connect(function()
+        UserInputService.InputEnded:Connect(function(Input)
 
-            Library:SafeCallback(
-                Func,
-                Table
-            )
+            if Pressing ~= true
+            or not PressInput then
+
+                return
+            end
+
+            if PressInput.UserInputType
+                == Enum.UserInputType.Touch then
+
+                if Input ~= PressInput then
+                    return
+                end
+
+            elseif Input.UserInputType
+                ~= Enum.UserInputType.MouseButton1 then
+
+                return
+            end
+
+            FinishPress()
         end)
-    )
-
-    Library:MakeDraggable(
-        Holder,
-        Button,
-        true
     )
 
     Table.Holder =
         Holder
+
+    Table.VisualHolder =
+        VisualHolder
 
     Table.Button =
         Button
@@ -3832,13 +4300,45 @@ function Library:AddDraggableButton(
     Table.Stroke =
         ButtonStroke
 
+    Table.TextLabel =
+        MainText
+
+    Table.TextShadow =
+        TextShadow
+
+    Table.Gradient =
+        TextGradient
+
+    Table.Scale =
+        VisualScale
+
     function Table:SetText(NewText: string)
 
-        Button.Text =
+        local Value =
             tostring(
                 NewText
                 or "HOLY"
             )
+
+        local NewTextSize =
+            #Value <= 1
+            and 27
+            or 24
+
+        Button.Text =
+            Value
+
+        MainText.Text =
+            Value
+
+        MainText.TextSize =
+            NewTextSize
+
+        TextShadow.Text =
+            Value
+
+        TextShadow.TextSize =
+            NewTextSize
     end
 
     function Table:SetVisible(Visible: boolean)
