@@ -401,6 +401,9 @@ local Templates = {
         SearchbarSize = UDim2.fromScale(1, 1),
         GlobalSearch = false,
 
+        AccountPrivacyMode =
+            "Hidden Until Clicked",
+
         Animations = {
             ToggleWindow = false,
             TabSwitch = true,
@@ -18409,11 +18412,54 @@ function Library:CreateWindow(WindowInfo)
     local BackgroundImage
     local BottomBackground
     local FooterLabel
+    local SidebarSurface
+
     local ProfileCard
     local ProfileAvatar
     local ProfileFallback
+    local ProfilePrivacyIcon
+    local ProfileStatus
     local ProfileDisplayName
     local ProfileUsername
+
+    local AccountPopoverBlocker
+    local AccountPopover
+    local AccountPopoverAvatar
+    local AccountPopoverFallback
+    local AccountPopoverPrivacyIcon
+    local AccountPopoverDisplayName
+    local AccountPopoverUsername
+    local AccountPopoverStatus
+    local AccountPopoverManageButton
+
+    local UpdateAccountDock
+    local AccountManageCallback
+    local ProfileThumbnailLoaded = false
+    local ProfileThumbnail = ""
+    local AccountStatus = "Not connected"
+
+    local function NormalizeAccountPrivacyMode(value)
+
+        value =
+            tostring(
+                value
+                or "Hidden Until Clicked"
+            )
+
+        if value ~= "Always Hidden"
+        and value ~= "Always Visible" then
+
+            value =
+                "Hidden Until Clicked"
+        end
+
+        return value
+    end
+
+    local AccountPrivacyMode =
+        NormalizeAccountPrivacyMode(
+            WindowInfo.AccountPrivacyMode
+        )
 
     local InitialLeftWidth = math.clamp(
         math.ceil(WindowInfo.Size.X.Offset * 0.23),
@@ -18783,152 +18829,920 @@ function Library:CreateWindow(WindowInfo)
         })
 
         --// Tabs \\--
-        Tabs = New("ScrollingFrame", {
-            AutomaticCanvasSize = Enum.AutomaticSize.Y,
-            BackgroundColor3 = "BackgroundColor",
-            CanvasSize = UDim2.fromScale(0, 0),
-            Position = UDim2.fromOffset(0, 45),
-            ScrollBarThickness = 0,
-            Size = UDim2.new(0, InitialLeftWidth, 1, -132),
-            Parent = MainFrame,
+
+        SidebarSurface = New("Frame", {
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            Position =
+                UDim2.fromOffset(
+                    0,
+                    45
+                ),
+
+            Size =
+                UDim2.new(
+                    0,
+                    InitialLeftWidth,
+                    1,
+                    -66
+                ),
+
+            Parent =
+                MainFrame,
         })
 
         Library:RegisterSurface(
-            Tabs,
+            SidebarSurface,
             "Chrome",
             0
         )
+
+        Tabs = New("ScrollingFrame", {
+            AutomaticCanvasSize =
+                Enum.AutomaticSize.Y,
+
+            BackgroundTransparency =
+                1,
+
+            CanvasSize =
+                UDim2.fromScale(
+                    0,
+                    0
+                ),
+
+            Position =
+                UDim2.fromOffset(
+                    0,
+                    45
+                ),
+
+            ScrollBarThickness =
+                0,
+
+            Size =
+                UDim2.new(
+                    0,
+                    InitialLeftWidth,
+                    1,
+                    -132
+                ),
+
+            Parent =
+                MainFrame,
+        })
 
         New("UIListLayout", {
             Parent = Tabs,
         })
 
         New("UIPadding", {
-            PaddingBottom = UDim.new(0, 4),
-            PaddingLeft = UDim.new(0, 6),
-            PaddingRight = UDim.new(0, 6),
-            PaddingTop = UDim.new(0, 4),
-            Parent = Tabs,
+            PaddingBottom =
+                UDim.new(
+                    0,
+                    4
+                ),
+
+            PaddingLeft =
+                UDim.new(
+                    0,
+                    6
+                ),
+
+            PaddingRight =
+                UDim.new(
+                    0,
+                    6
+                ),
+
+            PaddingTop =
+                UDim.new(
+                    0,
+                    4
+                ),
+
+            Parent =
+                Tabs,
         })
 
-        ProfileCard = New("Frame", {
-            BackgroundColor3 = "MainColor",
-            BackgroundTransparency = 0.08,
-            Position = UDim2.new(0, 8, 1, -80),
-            Size = UDim2.new(0, InitialLeftWidth - 16, 0, 56),
-            ZIndex = 3,
-            Parent = MainFrame,
+        ProfileCard = New("TextButton", {
+            AutoButtonColor =
+                false,
+
+            BackgroundColor3 =
+                "MainColor",
+
+            BackgroundTransparency =
+                0.08,
+
+            Position =
+                UDim2.new(
+                    0,
+                    8,
+                    1,
+                    -80
+                ),
+
+            Size =
+                UDim2.new(
+                    0,
+                    InitialLeftWidth - 16,
+                    0,
+                    56
+                ),
+
+            Text =
+                "",
+
+            ZIndex =
+                3,
+
+            Parent =
+                MainFrame,
         })
 
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                Parent = ProfileCard,
+                CornerRadius =
+                    UDim.new(
+                        0,
+                        WindowInfo.CornerRadius
+                    ),
+
+                Parent =
+                    ProfileCard,
             })
         )
 
         New("UIStroke", {
-            Color = "OutlineColor",
-            LineJoinMode = Enum.LineJoinMode.Round,
-            Transparency = 0.15,
-            Parent = ProfileCard,
+            Color =
+                "OutlineColor",
+
+            LineJoinMode =
+                Enum.LineJoinMode.Round,
+
+            Transparency =
+                0.15,
+
+            Parent =
+                ProfileCard,
         })
 
         Library:RegisterSurface(
             ProfileCard,
-            "Chrome",
+            "Control",
             0.08
         )
 
         ProfileFallback = New("TextLabel", {
-            BackgroundColor3 = "BackgroundColor",
-            Position = UDim2.fromOffset(9, 10),
-            Size = UDim2.fromOffset(36, 36),
-            Text = string.upper(
-                string.sub(
-                    LocalPlayer.DisplayName or LocalPlayer.Name,
-                    1,
-                    1
-                )
-            ),
-            TextSize = 13,
-            ZIndex = 4,
-            Parent = ProfileCard,
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            Position =
+                UDim2.fromOffset(
+                    9,
+                    10
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    36,
+                    36
+                ),
+
+            Text =
+                string.upper(
+                    string.sub(
+                        LocalPlayer.DisplayName
+                        or LocalPlayer.Name,
+                        1,
+                        1
+                    )
+                ),
+
+            TextSize =
+                13,
+
+            ZIndex =
+                4,
+
+            Parent =
+                ProfileCard,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = ProfileFallback,
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                ProfileFallback,
         })
 
         ProfileAvatar = New("ImageLabel", {
-            BackgroundColor3 = "BackgroundColor",
-            BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(9, 10),
-            Size = UDim2.fromOffset(36, 36),
-            ZIndex = 5,
-            Parent = ProfileCard,
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    9,
+                    10
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    36,
+                    36
+                ),
+
+            ZIndex =
+                5,
+
+            Parent =
+                ProfileCard,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = ProfileAvatar,
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                ProfileAvatar,
         })
 
-        local ProfileStatus = New("Frame", {
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            BackgroundColor3 = "SuccessColor",
-            Position = UDim2.new(1, -3, 1, -3),
-            Size = UDim2.fromOffset(10, 10),
-            ZIndex = 6,
-            Parent = ProfileAvatar,
+        local PrivacyIcon =
+            Library:GetIcon(
+                "user-round"
+            )
+            or Library:GetIcon(
+                "circle-user-round"
+            )
+
+        ProfilePrivacyIcon = New("ImageLabel", {
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            Image =
+                PrivacyIcon
+                and PrivacyIcon.Url
+                or "",
+
+            ImageColor3 =
+                "FontColor",
+
+            ImageRectOffset =
+                PrivacyIcon
+                and PrivacyIcon.ImageRectOffset
+                or Vector2.zero,
+
+            ImageRectSize =
+                PrivacyIcon
+                and PrivacyIcon.ImageRectSize
+                or Vector2.zero,
+
+            ImageTransparency =
+                0.18,
+
+            Position =
+                UDim2.fromOffset(
+                    9,
+                    10
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    36,
+                    36
+                ),
+
+            ZIndex =
+                5,
+
+            Parent =
+                ProfileCard,
         })
 
         New("UICorner", {
-            CornerRadius = UDim.new(1, 0),
-            Parent = ProfileStatus,
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                ProfilePrivacyIcon,
+        })
+
+        ProfileStatus = New("Frame", {
+            AnchorPoint =
+                Vector2.new(
+                    0.5,
+                    0.5
+                ),
+
+            BackgroundColor3 =
+                Color3.fromRGB(
+                    122,
+                    128,
+                    140
+                ),
+
+            Position =
+                UDim2.fromOffset(
+                    42,
+                    43
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    10,
+                    10
+                ),
+
+            ZIndex =
+                6,
+
+            Parent =
+                ProfileCard,
+        })
+
+        New("UICorner", {
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                ProfileStatus,
         })
 
         New("UIStroke", {
-            Color = "MainColor",
-            Thickness = 2,
-            Parent = ProfileStatus,
+            Color =
+                "MainColor",
+
+            Thickness =
+                2,
+
+            Parent =
+                ProfileStatus,
         })
 
         ProfileDisplayName = New("TextLabel", {
-            BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(54, 9),
-            Size = UDim2.new(1, -62, 0, 19),
-            Text = LocalPlayer.DisplayName,
-            TextSize = 13,
-            TextTruncate = Enum.TextTruncate.AtEnd,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 4,
-            Parent = ProfileCard,
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    54,
+                    9
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    -62,
+                    0,
+                    19
+                ),
+
+            Text =
+                "Account",
+
+            TextSize =
+                13,
+
+            TextTruncate =
+                Enum.TextTruncate.AtEnd,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            ZIndex =
+                4,
+
+            Parent =
+                ProfileCard,
         })
 
         ProfileUsername = New("TextLabel", {
-            BackgroundTransparency = 1,
-            Position = UDim2.fromOffset(54, 28),
-            Size = UDim2.new(1, -62, 0, 17),
-            Text = "@" .. LocalPlayer.Name,
-            TextSize = 11,
-            TextTransparency = 0.5,
-            TextTruncate = Enum.TextTruncate.AtEnd,
-            TextXAlignment = Enum.TextXAlignment.Left,
-            ZIndex = 4,
-            Parent = ProfileCard,
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    54,
+                    28
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    -62,
+                    0,
+                    17
+                ),
+
+            Text =
+                "Identity hidden",
+
+            TextSize =
+                11,
+
+            TextTransparency =
+                0.5,
+
+            TextTruncate =
+                Enum.TextTruncate.AtEnd,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            ZIndex =
+                4,
+
+            Parent =
+                ProfileCard,
         })
 
+        AccountPopoverBlocker = New("TextButton", {
+            AutoButtonColor =
+                false,
+
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromScale(
+                    0,
+                    0
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    0,
+                    1,
+                    -20
+                ),
+
+            Text =
+                "",
+
+            Visible =
+                false,
+
+            ZIndex =
+                95,
+
+            Parent =
+                MainFrame,
+        })
+
+        AccountPopover = New("TextButton", {
+            AnchorPoint =
+                Vector2.new(
+                    0,
+                    1
+                ),
+
+            AutoButtonColor =
+                false,
+
+            BackgroundColor3 =
+                "MainColor",
+
+            BackgroundTransparency =
+                0.04,
+
+            Position =
+                UDim2.new(
+                    0,
+                    8,
+                    1,
+                    -88
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    math.max(
+                        210,
+                        InitialLeftWidth - 16
+                    ),
+                    132
+                ),
+
+            Text =
+                "",
+
+            Visible =
+                false,
+
+            ZIndex =
+                96,
+
+            Parent =
+                MainFrame,
+        })
+
+        table.insert(
+            Library.Corners,
+            New("UICorner", {
+                CornerRadius =
+                    UDim.new(
+                        0,
+                        WindowInfo.CornerRadius
+                    ),
+
+                Parent =
+                    AccountPopover,
+            })
+        )
+
+        New("UIStroke", {
+            Color =
+                "OutlineColor",
+
+            Transparency =
+                0.08,
+
+            Parent =
+                AccountPopover,
+        })
+
+        Library:RegisterSurface(
+            AccountPopover,
+            "Panel",
+            0.04
+        )
+
+        AccountPopoverFallback = New("TextLabel", {
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            Position =
+                UDim2.fromOffset(
+                    12,
+                    12
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    40,
+                    40
+                ),
+
+            Text =
+                string.upper(
+                    string.sub(
+                        LocalPlayer.DisplayName
+                        or LocalPlayer.Name,
+                        1,
+                        1
+                    )
+                ),
+
+            TextSize =
+                14,
+
+            ZIndex =
+                97,
+
+            Parent =
+                AccountPopover,
+        })
+
+        New("UICorner", {
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                AccountPopoverFallback,
+        })
+
+        AccountPopoverAvatar = New("ImageLabel", {
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    12,
+                    12
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    40,
+                    40
+                ),
+
+            ZIndex =
+                98,
+
+            Parent =
+                AccountPopover,
+        })
+
+        New("UICorner", {
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                AccountPopoverAvatar,
+        })
+
+        AccountPopoverPrivacyIcon = New("ImageLabel", {
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            Image =
+                PrivacyIcon
+                and PrivacyIcon.Url
+                or "",
+
+            ImageColor3 =
+                "FontColor",
+
+            ImageRectOffset =
+                PrivacyIcon
+                and PrivacyIcon.ImageRectOffset
+                or Vector2.zero,
+
+            ImageRectSize =
+                PrivacyIcon
+                and PrivacyIcon.ImageRectSize
+                or Vector2.zero,
+
+            ImageTransparency =
+                0.18,
+
+            Position =
+                UDim2.fromOffset(
+                    12,
+                    12
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    40,
+                    40
+                ),
+
+            ZIndex =
+                98,
+
+            Parent =
+                AccountPopover,
+        })
+
+        New("UICorner", {
+            CornerRadius =
+                UDim.new(
+                    1,
+                    0
+                ),
+
+            Parent =
+                AccountPopoverPrivacyIcon,
+        })
+
+        AccountPopoverDisplayName = New("TextLabel", {
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    62,
+                    10
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    -74,
+                    0,
+                    20
+                ),
+
+            Text =
+                "Account",
+
+            TextSize =
+                14,
+
+            TextTruncate =
+                Enum.TextTruncate.AtEnd,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            ZIndex =
+                97,
+
+            Parent =
+                AccountPopover,
+        })
+
+        AccountPopoverUsername = New("TextLabel", {
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    62,
+                    30
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    -74,
+                    0,
+                    17
+                ),
+
+            Text =
+                "Identity hidden",
+
+            TextSize =
+                11,
+
+            TextTransparency =
+                0.48,
+
+            TextTruncate =
+                Enum.TextTruncate.AtEnd,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            ZIndex =
+                97,
+
+            Parent =
+                AccountPopover,
+        })
+
+        AccountPopoverStatus = New("TextLabel", {
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    62,
+                    48
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    -74,
+                    0,
+                    18
+                ),
+
+            Text =
+                "Not connected",
+
+            TextSize =
+                11,
+
+            TextTransparency =
+                0.12,
+
+            TextTruncate =
+                Enum.TextTruncate.AtEnd,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            ZIndex =
+                97,
+
+            Parent =
+                AccountPopover,
+        })
+
+        Library:MakeLine(
+            AccountPopover,
+            {
+                Position =
+                    UDim2.fromOffset(
+                        10,
+                        78
+                    ),
+
+                Size =
+                    UDim2.new(
+                        1,
+                        -20,
+                        0,
+                        1
+                    ),
+
+                ZIndex =
+                    97,
+            }
+        )
+
+        AccountPopoverManageButton = New("TextButton", {
+            AutoButtonColor =
+                false,
+
+            BackgroundColor3 =
+                "BackgroundColor",
+
+            BackgroundTransparency =
+                0.08,
+
+            Position =
+                UDim2.fromOffset(
+                    10,
+                    91
+                ),
+
+            Size =
+                UDim2.new(
+                    1,
+                    -20,
+                    0,
+                    30
+                ),
+
+            Text =
+                "Manage Account",
+
+            TextSize =
+                12,
+
+            ZIndex =
+                98,
+
+            Parent =
+                AccountPopover,
+        })
+
+        table.insert(
+            Library.Corners,
+            New("UICorner", {
+                CornerRadius =
+                    UDim.new(
+                        0,
+                        Library.CornerRadius / 2
+                    ),
+
+                Parent =
+                    AccountPopoverManageButton,
+            })
+        )
+
+        New("UIStroke", {
+            Color =
+                "OutlineColor",
+
+            Transparency =
+                0.18,
+
+            Parent =
+                AccountPopoverManageButton,
+        })
+
+        Library:RegisterSurface(
+            AccountPopoverManageButton,
+            "Control",
+            0.08
+        )
+
         task.spawn(function()
-            local Success, Thumbnail = pcall(function()
-                return Players:GetUserThumbnailAsync(
-                    LocalPlayer.UserId,
-                    Enum.ThumbnailType.HeadShot,
-                    Enum.ThumbnailSize.Size100x100
-                )
-            end)
+
+            local Success,
+                Thumbnail =
+                pcall(function()
+
+                    return Players:GetUserThumbnailAsync(
+                        LocalPlayer.UserId,
+                        Enum.ThumbnailType.HeadShot,
+                        Enum.ThumbnailSize.Size100x100
+                    )
+                end)
 
             if Success
             and type(Thumbnail) == "string"
@@ -18936,9 +19750,29 @@ function Library:CreateWindow(WindowInfo)
             and ProfileAvatar
             and ProfileAvatar.Parent then
 
-                ProfileAvatar.Image = Thumbnail
-                ProfileAvatar.BackgroundTransparency = 0
-                ProfileFallback.Visible = false
+                ProfileThumbnail =
+                    Thumbnail
+
+                ProfileThumbnailLoaded =
+                    true
+
+                ProfileAvatar.Image =
+                    Thumbnail
+
+                ProfileAvatar.BackgroundTransparency =
+                    0
+
+                AccountPopoverAvatar.Image =
+                    Thumbnail
+
+                AccountPopoverAvatar.BackgroundTransparency =
+                    0
+
+                if type(UpdateAccountDock)
+                    == "function" then
+
+                    UpdateAccountDock()
+                end
             end
         end)
 
@@ -18964,6 +19798,258 @@ function Library:CreateWindow(WindowInfo)
 
     --// Window Table \\--
     local Window = {}
+
+    local function ResolveAccountStatusColor(status)
+
+        local normalized =
+            tostring(
+                status
+                or ""
+            ):lower()
+
+        if normalized == "online"
+        or normalized == "connected" then
+
+            return Library.Scheme.SuccessColor
+        end
+
+        if normalized:find(
+            "checking",
+            1,
+            true
+        )
+        or normalized:find(
+            "connecting",
+            1,
+            true
+        )
+        or normalized:find(
+            "authenticating",
+            1,
+            true
+        ) then
+
+            return Library.Scheme.WarningColor
+        end
+
+        if normalized == "not connected"
+        or normalized:find(
+            "unsupported",
+            1,
+            true
+        ) then
+
+            return Color3.fromRGB(
+                122,
+                128,
+                140
+            )
+        end
+
+        return Library.Scheme.DestructiveColor
+    end
+
+    UpdateAccountDock =
+        function()
+
+            local showDockIdentity =
+                AccountPrivacyMode
+                    == "Always Visible"
+                and IsCompact ~= true
+
+            local showPopoverIdentity =
+                AccountPrivacyMode
+                    ~= "Always Hidden"
+
+            ProfileDisplayName.Text =
+                showDockIdentity
+                and LocalPlayer.DisplayName
+                or "Account"
+
+            ProfileUsername.Text =
+                showDockIdentity
+                and (
+                    "@"
+                    .. LocalPlayer.Name
+                )
+                or "Identity hidden"
+
+            ProfileAvatar.Visible =
+                showDockIdentity
+                and ProfileThumbnailLoaded
+
+            ProfileFallback.Visible =
+                showDockIdentity
+                and ProfileThumbnailLoaded
+                    ~= true
+
+            ProfilePrivacyIcon.Visible =
+                showDockIdentity
+                    ~= true
+
+            ProfileDisplayName.Visible =
+                IsCompact ~= true
+
+            ProfileUsername.Visible =
+                IsCompact ~= true
+
+            AccountPopoverDisplayName.Text =
+                showPopoverIdentity
+                and LocalPlayer.DisplayName
+                or "Account"
+
+            AccountPopoverUsername.Text =
+                showPopoverIdentity
+                and (
+                    "@"
+                    .. LocalPlayer.Name
+                )
+                or "Identity hidden"
+
+            AccountPopoverAvatar.Visible =
+                showPopoverIdentity
+                and ProfileThumbnailLoaded
+
+            AccountPopoverFallback.Visible =
+                showPopoverIdentity
+                and ProfileThumbnailLoaded
+                    ~= true
+
+            AccountPopoverPrivacyIcon.Visible =
+                showPopoverIdentity
+                    ~= true
+
+            AccountPopoverStatus.Text =
+                AccountStatus
+
+            local statusColor =
+                ResolveAccountStatusColor(
+                    AccountStatus
+                )
+
+            ProfileStatus.BackgroundColor3 =
+                statusColor
+
+            AccountPopoverStatus.TextColor3 =
+                statusColor
+        end
+
+    function Window:SetAccountPrivacyMode(value)
+
+        AccountPrivacyMode =
+            NormalizeAccountPrivacyMode(
+                value
+            )
+
+        WindowInfo.AccountPrivacyMode =
+            AccountPrivacyMode
+
+        UpdateAccountDock()
+
+        return AccountPrivacyMode
+    end
+
+    function Window:GetAccountPrivacyMode()
+
+        return AccountPrivacyMode
+    end
+
+    function Window:SetAccountDockStatus(status)
+
+        AccountStatus =
+            tostring(
+                status
+                or "Not connected"
+            )
+
+        UpdateAccountDock()
+
+        return AccountStatus
+    end
+
+    function Window:SetAccountDockManageCallback(callback)
+
+        AccountManageCallback =
+            typeof(callback) == "function"
+            and callback
+            or nil
+
+        return AccountManageCallback
+            ~= nil
+    end
+
+    function Window:IsAccountPopoverOpen()
+
+        return AccountPopover.Visible
+            == true
+    end
+
+    function Window:OpenAccountPopover()
+
+        UpdateAccountDock()
+
+        AccountPopoverBlocker.Visible =
+            true
+
+        AccountPopover.Visible =
+            true
+
+        return true
+    end
+
+    function Window:CloseAccountPopover()
+
+        AccountPopover.Visible =
+            false
+
+        AccountPopoverBlocker.Visible =
+            false
+
+        return true
+    end
+
+    function Window:ToggleAccountPopover()
+
+        if Window:IsAccountPopoverOpen() then
+
+            return Window:CloseAccountPopover()
+        end
+
+        return Window:OpenAccountPopover()
+    end
+
+    Library:GiveSignal(
+        ProfileCard.MouseButton1Click:Connect(function()
+
+            Window:ToggleAccountPopover()
+        end)
+    )
+
+    Library:GiveSignal(
+        AccountPopoverBlocker.MouseButton1Click:Connect(function()
+
+            Window:CloseAccountPopover()
+        end)
+    )
+
+    Library:GiveSignal(
+        AccountPopoverManageButton.MouseButton1Click:Connect(function()
+
+            Window:CloseAccountPopover()
+
+            Library:SafeCallback(
+                AccountManageCallback
+            )
+        end)
+    )
+
+    Window:SetAccountPrivacyMode(
+        AccountPrivacyMode
+    )
+
+    Window:SetAccountDockStatus(
+        AccountStatus
+    )
 
     function Window:ChangeTitle(title)
         assert(typeof(title) == "string", "Expected string for title got: " .. typeof(title))
@@ -19055,37 +20141,80 @@ function Library:CreateWindow(WindowInfo)
                 or Enum.SizeConstraint.RelativeYY
         end
 
-        ProfileCard.Position = UDim2.new(
-            0,
-            IsCompact and 4 or 8,
-            1,
-            -80
-        )
+        ProfileCard.Position =
+            UDim2.new(
+                0,
+                IsCompact
+                    and 4
+                    or 8,
+                1,
+                -80
+            )
 
-        ProfileCard.Size = UDim2.new(
-            0,
-            math.max(
-                40,
-                Tabs.Size.X.Offset
-                    - (IsCompact and 8 or 16)
-            ),
-            0,
-            56
-        )
+        ProfileCard.Size =
+            UDim2.new(
+                0,
+                math.max(
+                    40,
+                    Tabs.Size.X.Offset
+                        - (
+                            IsCompact
+                            and 8
+                            or 16
+                        )
+                ),
+                0,
+                56
+            )
 
-        ProfileAvatar.Position = UDim2.fromOffset(
-            IsCompact and 2 or 9,
-            10
-        )
+        local profileIconX =
+            IsCompact
+            and 2
+            or 9
+
+        ProfileAvatar.Position =
+            UDim2.fromOffset(
+                profileIconX,
+                10
+            )
 
         ProfileFallback.Position =
             ProfileAvatar.Position
 
-        ProfileDisplayName.Visible =
-            not IsCompact
+        ProfilePrivacyIcon.Position =
+            ProfileAvatar.Position
 
-        ProfileUsername.Visible =
-            not IsCompact
+        ProfileStatus.Position =
+            UDim2.fromOffset(
+                profileIconX + 33,
+                43
+            )
+
+        AccountPopover.Position =
+            UDim2.new(
+                0,
+                IsCompact
+                    and 4
+                    or 8,
+                1,
+                -88
+            )
+
+        AccountPopover.Size =
+            UDim2.fromOffset(
+                math.max(
+                    210,
+                    Tabs.Size.X.Offset
+                        - (
+                            IsCompact
+                            and 8
+                            or 16
+                        )
+                ),
+                132
+            )
+
+        UpdateAccountDock()
     end
 
     function Window:IsSidebarCompacted()
@@ -19121,18 +20250,36 @@ function Library:CreateWindow(WindowInfo)
         Tabs.Size =
             UDim2.new(0, Width, 1, -132)
 
+        SidebarSurface.Size =
+            UDim2.new(0, Width, 1, -66)
+
         Container.Size =
             UDim2.new(1, -Width - 1, 1, -70)
 
         if WindowInfo.EnableCompacting then
             ApplyCompact()
         else
-            ProfileCard.Size = UDim2.new(
-                0,
-                math.max(40, Width - 16),
-                0,
-                56
-            )
+            ProfileCard.Size =
+                UDim2.new(
+                    0,
+                    math.max(
+                        40,
+                        Width - 16
+                    ),
+                    0,
+                    56
+                )
+
+            AccountPopover.Size =
+                UDim2.fromOffset(
+                    math.max(
+                        210,
+                        Width - 16
+                    ),
+                    132
+                )
+
+            UpdateAccountDock()
         end
 
         if not IsCompact then
@@ -19150,6 +20297,9 @@ function Library:CreateWindow(WindowInfo)
         CurrentTabInfo.Visible = true
     end
     function Window:HideTabInfo()
+
+        Window:CloseAccountPopover()
+
         CurrentTabInfo.Visible = false
         if IsDefaultSearchbarSize then
             SearchBox.Size = UDim2.fromScale(1, 1)
@@ -22360,7 +23510,13 @@ end
             Library.Toggled = not Library.Toggled
         end
 
-        MainFrame.Visible = Library.Toggled
+        MainFrame.Visible =
+            Library.Toggled
+
+        if Library.Toggled ~= true then
+
+            Window:CloseAccountPopover()
+        end
 
         if WindowInfo.UnlockMouseWhileOpen then
             ModalElement.Modal = Library.Toggled
@@ -22545,6 +23701,14 @@ end
 
     Library:GiveSignal(UserInputService.InputBegan:Connect(function(Input: InputObject)
         if Library.Unloaded then
+            return
+        end
+
+        if Input.KeyCode == Enum.KeyCode.Escape
+        and Window:IsAccountPopoverOpen() then
+
+            Window:CloseAccountPopover()
+
             return
         end
 
