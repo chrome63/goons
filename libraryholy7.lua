@@ -13867,11 +13867,20 @@ do
 
             local KeyLabel = New("TextLabel", {
                 BackgroundTransparency = 1,
+
+                FontFace =
+                    function()
+
+                        return Library:GetWeightedFont(
+                            Enum.FontWeight.SemiBold
+                        )
+                    end,
+
                 Position = UDim2.fromOffset(0, 0),
                 Size = UDim2.new(KeyWidth, -4, 1, 0),
                 Text = tostring(keyText or ""),
                 TextSize = 13,
-                TextTransparency = 0.38,
+                TextTransparency = 0.22,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 Parent = RowFrame,
@@ -14071,6 +14080,105 @@ do
             row.ValueLabel.TextTransparency =
                 tonumber(valueTransparency)
                 or row.ValueLabel.TextTransparency
+        end
+
+        function StatusList:SetRowTone(keyText, tone)
+
+            keyText =
+                tostring(keyText or "")
+
+            local row =
+                StatusList.RowMap[keyText]
+
+            if not row
+            or typeof(row.ValueLabel) ~= "Instance" then
+
+                return false
+            end
+
+            local normalized =
+                tostring(
+                    tone
+                    or "Normal"
+                )
+                    :lower()
+                    :gsub(
+                        "[%s_%-]",
+                        ""
+                    )
+
+            local colorKeys = {
+                normal =
+                    "FontColor",
+
+                accent =
+                    "AccentColor",
+
+                success =
+                    "SuccessColor",
+
+                active =
+                    "SuccessColor",
+
+                ready =
+                    "SuccessColor",
+
+                warning =
+                    "WarningColor",
+
+                waiting =
+                    "WarningColor",
+
+                paused =
+                    "WarningColor",
+
+                muted =
+                    "MutedColor",
+
+                idle =
+                    "MutedColor",
+
+                disabled =
+                    "MutedColor",
+
+                danger =
+                    "RedColor",
+
+                destructive =
+                    "RedColor",
+
+                error =
+                    "RedColor",
+
+                unavailable =
+                    "RedColor",
+
+                red =
+                    "RedColor",
+            }
+
+            local colorKey =
+                colorKeys[normalized]
+                or "FontColor"
+
+            Library.Registry[row.ValueLabel] =
+                type(
+                    Library.Registry[row.ValueLabel]
+                ) == "table"
+                and Library.Registry[row.ValueLabel]
+                or {}
+
+            Library.Registry[row.ValueLabel].TextColor3 =
+                colorKey
+
+            row.ValueLabel.TextColor3 =
+                Library.Scheme[colorKey]
+                or Library.Scheme.FontColor
+
+            row.Tone =
+                normalized
+
+            return true
         end
 
         StatusList:SetRows(
@@ -19461,6 +19569,79 @@ function Library:SetFont(FontFace)
     Library:UpdateColorsUsingRegistry()
 end
 
+function Library:GetWeightedFont(weight)
+
+    weight =
+        typeof(weight) == "EnumItem"
+        and weight
+        or Enum.FontWeight.Medium
+
+    local baseFont =
+        Library.Scheme.Font
+
+    if typeof(baseFont) == "EnumItem" then
+
+        baseFont =
+            Font.fromEnum(
+                baseFont
+            )
+    end
+
+    if typeof(baseFont) == "Font" then
+
+        local ok,
+            weightedFont =
+            pcall(function()
+
+                return Font.new(
+                    baseFont.Family,
+                    weight,
+                    baseFont.Style
+                )
+            end)
+
+        if ok == true
+        and typeof(weightedFont) == "Font" then
+
+            return weightedFont
+        end
+
+        return baseFont
+    end
+
+    return Font.fromEnum(
+        Enum.Font.GothamMedium
+    )
+end
+
+function Library:SetTextWeight(textObject, weight)
+
+    if typeof(textObject) ~= "Instance" then
+        return false
+    end
+
+    local resolver =
+        function()
+
+            return Library:GetWeightedFont(
+                weight
+            )
+        end
+
+    Library.Registry[textObject] =
+        type(Library.Registry[textObject]) == "table"
+        and Library.Registry[textObject]
+        or {}
+
+    Library.Registry[textObject].FontFace =
+        resolver
+
+    textObject.FontFace =
+        resolver()
+
+    return true
+end
+
 function Library:SetNotifySide(Side: string)
     Library.NotifySide = Side
 
@@ -21832,6 +22013,15 @@ function Library:CreateWindow(WindowInfo)
 
             TabLabel = New("TextLabel", {
                 BackgroundTransparency = 1,
+
+                FontFace =
+                    function()
+
+                        return Library:GetWeightedFont(
+                            Enum.FontWeight.Medium
+                        )
+                    end,
+
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
@@ -23535,6 +23725,15 @@ function Library:CreateWindow(WindowInfo)
 
                 GroupboxLabel = New("TextLabel", {
                     BackgroundTransparency = 1,
+
+                    FontFace =
+                        function()
+
+                            return Library:GetWeightedFont(
+                                Enum.FontWeight.SemiBold
+                            )
+                        end,
+
                     Position = UDim2.fromOffset(BoxIcon and 27 or 0, 0),
                     Size = UDim2.new(1, 0, 0, 29),
                     Text = Info.Name,
@@ -24123,6 +24322,11 @@ end
                 BackgroundTransparency = 0,
             }):Play()
 
+            Library:SetTextWeight(
+                TabLabel,
+                Enum.FontWeight.SemiBold
+            )
+
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0,
             }):Play()
@@ -24155,6 +24359,11 @@ end
             TweenService:Create(TabActiveBar, Library.TweenInfo, {
                 BackgroundTransparency = 1,
             }):Play()
+
+            Library:SetTextWeight(
+                TabLabel,
+                Enum.FontWeight.Medium
+            )
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
                 TextTransparency = 0.38,
