@@ -518,12 +518,23 @@ local Templates = {
         Values = {},
         DisabledValues = {},
         ValueImages = {},
+        ValueMetadata = {},
 
         Multi = false,
         MaxVisibleDropdownItems = 8,
         Popout = nil,
         PopoutThreshold = 8,
         PickerTitle = nil,
+        RichPicker = false,
+        MasterValue = nil,
+        MasterText = nil,
+        PickerState = {},
+        PickerWorlds = {},
+        PickerRarities = {},
+        PickerSorts = {},
+        CurrentWorld = nil,
+        GetLiveStock = nil,
+        OnPickerStateChanged = nil,
 
         Callback = function() end,
         Changed = function() end,
@@ -8750,6 +8761,7 @@ local DropdownPicker = {
     Rows = {},
     SelectedOnly = false,
     AnimationToken = 0,
+    RefreshToken = 0,
 }
 
 function DropdownPicker:CreateButton(Parent, Text, ZIndex)
@@ -8783,6 +8795,11 @@ function DropdownPicker:CreateButton(Parent, Text, ZIndex)
 
         local Selected = Button == self.AllButton and not self.SelectedOnly
             or Button == self.SelectedButton and self.SelectedOnly
+            or Button == self.MasterButton
+                and self.Config
+                and self.Config.Info.MasterValue ~= nil
+                and type(self.Draft) == "table"
+                and self.Draft[self.Config.Info.MasterValue] == true
 
         TweenService:Create(Button, Library.TweenInfo, {
             BackgroundTransparency = Button == self.ApplyButton and 0.1 or Selected and 0.64 or 0.82,
@@ -8797,6 +8814,11 @@ function DropdownPicker:CreateButton(Parent, Text, ZIndex)
 
         local Selected = Button == self.AllButton and not self.SelectedOnly
             or Button == self.SelectedButton and self.SelectedOnly
+            or Button == self.MasterButton
+                and self.Config
+                and self.Config.Info.MasterValue ~= nil
+                and type(self.Draft) == "table"
+                and self.Draft[self.Config.Info.MasterValue] == true
 
         TweenService:Create(Button, Library.TweenInfo, {
             BackgroundTransparency = Button == self.ApplyButton and 0.18 or Selected and 0.72 or 0.92,
@@ -8950,6 +8972,29 @@ function DropdownPicker:Create()
         Parent = self.SearchHolder,
     })
 
+    self.MasterButton = self:CreateButton(
+        self.Panel,
+        "Enable every option",
+        Z + 3
+    )
+
+    self.MasterButton.Position =
+        UDim2.fromOffset(
+            12,
+            90
+        )
+
+    self.MasterButton.Size =
+        UDim2.new(
+            1,
+            -24,
+            0,
+            30
+        )
+
+    self.MasterButton.Visible =
+        false
+
     self.Toolbar = New("Frame", {
         BackgroundTransparency = 1,
         Position = UDim2.fromOffset(12, 90),
@@ -8966,7 +9011,7 @@ function DropdownPicker:Create()
         Parent = self.Toolbar,
     })
 
-    self.AllButton = self:CreateButton(self.Toolbar, "All", Z + 3)
+    self.AllButton = self:CreateButton(self.Toolbar, "Browse", Z + 3)
     self.AllButton.LayoutOrder = 1
 
     self.SelectedButton = self:CreateButton(self.Toolbar, "Selected", Z + 3)
@@ -8978,10 +9023,50 @@ function DropdownPicker:Create()
     self.ClearButton = self:CreateButton(self.Toolbar, "Clear", Z + 3)
     self.ClearButton.LayoutOrder = 4
 
+    self.FilterToolbar = New("Frame", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(12, 170),
+        Size = UDim2.new(1, -24, 0, 30),
+        ZIndex = Z + 2,
+        Parent = self.Panel,
+    })
+
+    New("UIGridLayout", {
+        CellPadding = UDim2.fromOffset(6, 0),
+        CellSize = UDim2.new(1 / 3, -4, 1, 0),
+        FillDirectionMaxCells = 3,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = self.FilterToolbar,
+    })
+
+    self.WorldButton = self:CreateButton(
+        self.FilterToolbar,
+        "World: Current",
+        Z + 3
+    )
+
+    self.WorldButton.LayoutOrder = 1
+
+    self.RarityButton = self:CreateButton(
+        self.FilterToolbar,
+        "Rarity: All",
+        Z + 3
+    )
+
+    self.RarityButton.LayoutOrder = 2
+
+    self.SortButton = self:CreateButton(
+        self.FilterToolbar,
+        "Sort: Shop order",
+        Z + 3
+    )
+
+    self.SortButton.LayoutOrder = 3
+
     self.GridHolder = New("Frame", {
         BackgroundColor3 = "MainColor",
-        Position = UDim2.fromOffset(12, 128),
-        Size = UDim2.new(1, -24, 1, -186),
+        Position = UDim2.fromOffset(12, 208),
+        Size = UDim2.new(1, -24, 1, -266),
         ZIndex = Z + 2,
         Parent = self.Panel,
     })
@@ -9089,6 +9174,28 @@ function DropdownPicker:Create()
         self:Apply()
     end)
 
+    self.MasterButton.MouseButton1Click:Connect(function()
+        if not (
+            self.Config
+            and self.Config.Dropdown.Multi
+            and self.Config.Info.MasterValue ~= nil
+        ) then
+            return
+        end
+
+        local MasterValue =
+            self.Config.Info.MasterValue
+
+        if self.Draft[MasterValue] == true then
+            table.clear(self.Draft)
+        else
+            table.clear(self.Draft)
+            self.Draft[MasterValue] = true
+        end
+
+        self:RefreshRows()
+    end)
+
     self.AllButton.MouseButton1Click:Connect(function()
         self.SelectedOnly = false
         self.Grid.CanvasPosition = Vector2.zero
@@ -9106,6 +9213,13 @@ function DropdownPicker:Create()
             return
         end
 
+        local MasterValue =
+            self.Config.Info.MasterValue
+
+        if MasterValue ~= nil then
+            self.Draft[MasterValue] = nil
+        end
+
         for _, Row in self.Rows do
             if Row.Container.Visible and not Row.Disabled then
                 self.Draft[Row.Value] = true
@@ -9120,18 +9234,50 @@ function DropdownPicker:Create()
             return
         end
 
-        table.clear(self.Draft)
+        local MasterValue =
+            self.Config.Info.MasterValue
 
-        if not self.Config.Info.AllowNull then
+        if MasterValue ~= nil
+        and self.Draft[MasterValue] == true then
+            table.clear(self.Draft)
+
             for _, Row in self.Rows do
-                if not Row.Disabled then
+                if not Row.Container.Visible
+                and not Row.Disabled then
                     self.Draft[Row.Value] = true
-                    break
+                end
+            end
+        else
+            for _, Row in self.Rows do
+                if Row.Container.Visible then
+                    self.Draft[Row.Value] = nil
                 end
             end
         end
 
         self:RefreshRows()
+    end)
+
+    self.WorldButton.MouseButton1Click:Connect(function()
+        self:CyclePickerState(
+            "World",
+            self:GetWorldOptions()
+        )
+    end)
+
+    self.RarityButton.MouseButton1Click:Connect(function()
+        self:CyclePickerState(
+            "Rarity",
+            self:GetRarityOptions()
+        )
+    end)
+
+    self.SortButton.MouseButton1Click:Connect(function()
+        self:CyclePickerState(
+            "Sort",
+            self:GetSortOptions(),
+            true
+        )
     end)
 
     self.SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
@@ -9160,17 +9306,615 @@ function DropdownPicker:Create()
     end)
 end
 
+function DropdownPicker:GetInfo()
+    return self.Config
+        and self.Config.Info
+        or {}
+end
+
+function DropdownPicker:GetPickerState()
+    local Info = self:GetInfo()
+
+    if type(Info.PickerState) ~= "table" then
+        Info.PickerState = {}
+    end
+
+    return Info.PickerState
+end
+
+function DropdownPicker:GetMetadata(Value)
+    local Info = self:GetInfo()
+
+    local Metadata =
+        type(Info.ValueMetadata) == "table"
+        and Info.ValueMetadata
+        or self.Config
+            and type(self.Config.Dropdown.ValueMetadata) == "table"
+            and self.Config.Dropdown.ValueMetadata
+        or {}
+
+    return type(Metadata[Value]) == "table"
+        and Metadata[Value]
+        or {}
+end
+
+function DropdownPicker:GetWorldOptions()
+    local Info = self:GetInfo()
+
+    if type(Info.PickerWorlds) == "table"
+    and #Info.PickerWorlds > 0 then
+        return Info.PickerWorlds
+    end
+
+    return {
+        "Current World",
+        "Garden Valley",
+        "Fall Harvest",
+        "All Worlds",
+    }
+end
+
+function DropdownPicker:GetRarityOptions()
+    local Info = self:GetInfo()
+
+    local Options = {
+        "All Rarities",
+    }
+
+    local Seen = {
+        ["All Rarities"] = true,
+    }
+
+    if type(Info.PickerRarities) == "table"
+    and #Info.PickerRarities > 0 then
+        for _, Rarity in Info.PickerRarities do
+            Rarity = tostring(Rarity)
+
+            if Rarity ~= ""
+            and not Seen[Rarity] then
+                Seen[Rarity] = true
+
+                table.insert(
+                    Options,
+                    Rarity
+                )
+            end
+        end
+    elseif self.Config then
+        local Rows = {}
+
+        for _, Value in self.Config.Dropdown.Values do
+            if Value ~= Info.MasterValue then
+                local Meta =
+                    self:GetMetadata(Value)
+
+                local Rarity =
+                    tostring(
+                        Meta.Rarity
+                        or ""
+                    )
+
+                if Rarity ~= ""
+                and not Seen[Rarity] then
+                    Seen[Rarity] = true
+
+                    table.insert(
+                        Rows,
+                        {
+                            Name = Rarity,
+                            Rank =
+                                tonumber(
+                                    Meta.RarityRank
+                                )
+                                or 0,
+                        }
+                    )
+                end
+            end
+        end
+
+        table.sort(Rows, function(Left, Right)
+            if Left.Rank ~= Right.Rank then
+                return Left.Rank > Right.Rank
+            end
+
+            return Left.Name < Right.Name
+        end)
+
+        for _, Row in Rows do
+            table.insert(
+                Options,
+                Row.Name
+            )
+        end
+    end
+
+    return Options
+end
+
+function DropdownPicker:GetSortOptions()
+    local Info = self:GetInfo()
+
+    if type(Info.PickerSorts) == "table"
+    and #Info.PickerSorts > 0 then
+        return Info.PickerSorts
+    end
+
+    return {
+        "Shop Order",
+        "Rarity: Highest",
+        "Price: Highest",
+        "Price: Lowest",
+        "Name",
+    }
+end
+
+function DropdownPicker:NormalizePickerState()
+    local State =
+        self:GetPickerState()
+
+    local Worlds =
+        self:GetWorldOptions()
+
+    local Rarities =
+        self:GetRarityOptions()
+
+    local Sorts =
+        self:GetSortOptions()
+
+    if not table.find(
+        Worlds,
+        State.World
+    ) then
+        State.World =
+            Worlds[1]
+            or "Current World"
+    end
+
+    if not table.find(
+        Rarities,
+        State.Rarity
+    ) then
+        State.Rarity =
+            Rarities[1]
+            or "All Rarities"
+    end
+
+    if not table.find(
+        Sorts,
+        State.Sort
+    ) then
+        State.Sort =
+            Sorts[1]
+            or "Shop Order"
+    end
+
+    return State
+end
+
+function DropdownPicker:CyclePickerState(
+    Key,
+    Options,
+    Rebuild
+)
+    if not (
+        self.Config
+        and self.Config.Info.RichPicker == true
+        and type(Options) == "table"
+        and #Options > 0
+    ) then
+        return
+    end
+
+    local State =
+        self:NormalizePickerState()
+
+    local CurrentIndex =
+        table.find(
+            Options,
+            State[Key]
+        )
+        or 0
+
+    local NextIndex =
+        CurrentIndex % #Options + 1
+
+    State[Key] =
+        Options[NextIndex]
+
+    self.Grid.CanvasPosition =
+        Vector2.zero
+
+    Library:SafeCallback(
+        self.Config.Info.OnPickerStateChanged,
+        State,
+        self.Config.Dropdown
+    )
+
+    if Rebuild == true then
+        self:RebuildRows()
+    else
+        self:RefreshRows()
+    end
+end
+
+function DropdownPicker:NormalizeWorld(Value)
+    local Text =
+        tostring(
+            Value
+            or ""
+        ):lower()
+
+    if Text:find(
+        "fall",
+        1,
+        true
+    ) then
+        return "Fall Harvest"
+    end
+
+    if Text == "main"
+    or Text:find(
+        "garden",
+        1,
+        true
+    )
+    or Text:find(
+        "valley",
+        1,
+        true
+    ) then
+        return "Garden Valley"
+    end
+
+    if Text == ""
+    or Text == "universal"
+    or Text == "all" then
+        return "Universal"
+    end
+
+    return tostring(Value)
+end
+
+function DropdownPicker:ResolveWantedWorld()
+    local State =
+        self:NormalizePickerState()
+
+    local Wanted =
+        State.World
+
+    if Wanted == "Current World" then
+        local CurrentWorld =
+            self:GetInfo().CurrentWorld
+
+        if type(CurrentWorld) == "function" then
+            local Ok,
+                Result =
+                pcall(CurrentWorld)
+
+            if Ok then
+                Wanted =
+                    Result
+            end
+        end
+    end
+
+    return self:NormalizeWorld(
+        Wanted
+    )
+end
+
+function DropdownPicker:WorldMatches(Row)
+    local State =
+        self:NormalizePickerState()
+
+    if State.World == "All Worlds" then
+        return true
+    end
+
+    local Worlds =
+        Row.Metadata.Worlds
+
+    if type(Worlds) ~= "table"
+    or next(Worlds) == nil then
+        return true
+    end
+
+    local Wanted =
+        self:ResolveWantedWorld()
+
+    for Key, Value in pairs(Worlds) do
+        local World =
+            type(Key) == "number"
+            and Value
+            or Value == true
+                and Key
+            or nil
+
+        if World ~= nil then
+            local Normalized =
+                self:NormalizeWorld(
+                    World
+                )
+
+            if Normalized == "Universal"
+            or Normalized == Wanted then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+function DropdownPicker:RarityMatches(Row)
+    local Wanted =
+        self:NormalizePickerState()
+            .Rarity
+
+    return Wanted == "All Rarities"
+        or tostring(
+            Row.Metadata.Rarity
+            or ""
+        ) == Wanted
+end
+
+function DropdownPicker:GetSortedValues()
+    if not self.Config then
+        return {}
+    end
+
+    local Info =
+        self.Config.Info
+
+    local Values =
+        {}
+
+    for _, Value in self.Config.Dropdown.Values do
+        if Info.RichPicker ~= true
+        or Value ~= Info.MasterValue then
+            table.insert(
+                Values,
+                Value
+            )
+        end
+    end
+
+    if Info.RichPicker ~= true then
+        return Values
+    end
+
+    local SortMode =
+        self:NormalizePickerState()
+            .Sort
+
+    table.sort(Values, function(LeftValue, RightValue)
+        local Left =
+            self:GetMetadata(
+                LeftValue
+            )
+
+        local Right =
+            self:GetMetadata(
+                RightValue
+            )
+
+        if SortMode == "Rarity: Highest" then
+            local LeftRank =
+                tonumber(
+                    Left.RarityRank
+                )
+                or 0
+
+            local RightRank =
+                tonumber(
+                    Right.RarityRank
+                )
+                or 0
+
+            if LeftRank ~= RightRank then
+                return LeftRank > RightRank
+            end
+
+            local LeftPrice =
+                tonumber(
+                    Left.Price
+                )
+                or 0
+
+            local RightPrice =
+                tonumber(
+                    Right.Price
+                )
+                or 0
+
+            if LeftPrice ~= RightPrice then
+                return LeftPrice > RightPrice
+            end
+        elseif SortMode == "Price: Highest"
+        or SortMode == "Price: Lowest" then
+            local LeftPrice =
+                tonumber(
+                    Left.Price
+                )
+                or 0
+
+            local RightPrice =
+                tonumber(
+                    Right.Price
+                )
+                or 0
+
+            if LeftPrice ~= RightPrice then
+                return SortMode == "Price: Highest"
+                    and LeftPrice > RightPrice
+                    or LeftPrice < RightPrice
+            end
+        elseif SortMode == "Shop Order" then
+            local LeftOrder =
+                tonumber(
+                    Left.ShopOrder
+                )
+                or math.huge
+
+            local RightOrder =
+                tonumber(
+                    Right.ShopOrder
+                )
+                or math.huge
+
+            if LeftOrder ~= RightOrder then
+                return LeftOrder < RightOrder
+            end
+        end
+
+        return tostring(
+            LeftValue
+        ):lower()
+            < tostring(
+                RightValue
+            ):lower()
+    end)
+
+    return Values
+end
+
+function DropdownPicker:UpdateFilterButtons()
+    if not (
+        self.Built
+        and self.Config
+    ) then
+        return
+    end
+
+    local Info =
+        self.Config.Info
+
+    local Rich =
+        Info.RichPicker == true
+
+    local State =
+        self:NormalizePickerState()
+
+    local MasterValue =
+        Info.MasterValue
+
+    local MasterActive =
+        MasterValue ~= nil
+        and type(self.Draft) == "table"
+        and self.Draft[MasterValue] == true
+
+    self.MasterButton.Visible =
+        Rich
+        and MasterValue ~= nil
+
+    self.FilterToolbar.Visible =
+        Rich
+
+    self.WorldButton.Text =
+        "World: "
+        .. tostring(
+            State.World
+        )
+
+    self.RarityButton.Text =
+        State.Rarity == "All Rarities"
+        and "Rarity: All"
+        or "Rarity: "
+            .. tostring(
+                State.Rarity
+            )
+
+    self.SortButton.Text =
+        "Sort: "
+        .. tostring(
+            State.Sort
+        )
+
+    local CatalogCount =
+        #self.Rows
+
+    local MasterText =
+        tostring(
+            Info.MasterText
+            or "Enable every option"
+        )
+
+    self.MasterButton.Text =
+        MasterActive
+        and "All "
+            .. tostring(
+                CatalogCount
+            )
+            .. " enabled"
+        or MasterText
+
+    self.MasterButton.BackgroundTransparency =
+        MasterActive
+        and 0.64
+        or 0.92
+
+    self.MasterButton.TextTransparency =
+        MasterActive
+        and 0
+        or 0.22
+
+    local HasFilters =
+        tostring(
+            self.SearchBox.Text
+            or ""
+        ) ~= ""
+        or self.SelectedOnly
+        or State.World ~= "All Worlds"
+        or State.Rarity ~= "All Rarities"
+
+    self.ClearButton.Text =
+        HasFilters
+        and "Clear shown"
+        or "Clear"
+end
+
 function DropdownPicker:UpdateGrid()
     if not self.Built then
         return
     end
 
-    local Width = math.max(self.Grid.AbsoluteSize.X - 16, 1)
-    local Columns = Width >= 500 and 2 or 1
-    local CellWidth = math.floor((Width - ((Columns - 1) * 6)) / Columns)
+    local Width =
+        math.max(
+            self.Grid.AbsoluteSize.X - 16,
+            1
+        )
 
-    self.GridLayout.FillDirectionMaxCells = Columns
-    self.GridLayout.CellSize = UDim2.fromOffset(CellWidth, 34)
+    local Columns =
+        Width >= 500
+        and 2
+        or 1
+
+    local CellWidth =
+        math.floor(
+            (
+                Width
+                - (
+                    Columns - 1
+                ) * 6
+            )
+            / Columns
+        )
+
+    local Rich =
+        self.Config
+        and self.Config.Info.RichPicker == true
+
+    self.GridLayout.FillDirectionMaxCells =
+        Columns
+
+    self.GridLayout.CellSize =
+        UDim2.fromOffset(
+            CellWidth,
+            Rich
+            and 58
+            or 34
+        )
 end
 
 function DropdownPicker:IsSelected(Value)
@@ -9179,7 +9923,12 @@ function DropdownPicker:IsSelected(Value)
     end
 
     if self.Config.Dropdown.Multi then
+        local MasterValue =
+            self.Config.Info.MasterValue
+
         return self.Draft[Value] == true
+            or MasterValue ~= nil
+                and self.Draft[MasterValue] == true
     end
 
     return self.Draft == Value
@@ -9189,14 +9938,35 @@ function DropdownPicker:GetSelectedCount()
     if not self.Config then
         return 0
     elseif not self.Config.Dropdown.Multi then
-        return self.Draft and 1 or 0
+        return self.Draft
+            and 1
+            or 0
     end
 
-    local Count = 0
+    local MasterValue =
+        self.Config.Info.MasterValue
+
+    if MasterValue ~= nil
+    and self.Draft[MasterValue] == true then
+        local Count =
+            0
+
+        for _, Value in self.Config.Dropdown.Values do
+            if Value ~= MasterValue then
+                Count += 1
+            end
+        end
+
+        return Count
+    end
+
+    local Count =
+        0
 
     for _, Value in self.Config.Dropdown.Values do
-        if self.Draft[Value] then
-            Count = Count + 1
+        if Value ~= MasterValue
+        and self.Draft[Value] then
+            Count += 1
         end
     end
 
@@ -9246,30 +10016,217 @@ function DropdownPicker:NormalizeDraft()
 end
 
 function DropdownPicker:UpdateRow(Row)
-    local Selected = self:IsSelected(Row.Value)
+    Row.Metadata =
+        self:GetMetadata(
+            Row.Value
+        )
 
-    Row.Container.BackgroundTransparency = Row.Disabled and 1
-        or Selected and (Row.Hovering and 0.68 or 0.76)
-        or Row.Hovering and 0.89
+    local Selected =
+        self:IsSelected(
+            Row.Value
+        )
+
+    Row.Container.BackgroundTransparency =
+        Row.Disabled
+        and 1
+        or Selected
+            and (
+                Row.Hovering
+                and 0.68
+                or 0.76
+            )
+        or Row.Hovering
+            and 0.89
         or 1
 
-    Row.Stroke.Transparency = Row.Disabled and 1
-        or Selected and 0.42
-        or Row.Hovering and 0.72
+    Row.Stroke.Transparency =
+        Row.Disabled
+        and 1
+        or Selected
+            and 0.42
+        or Row.Hovering
+            and 0.72
         or 1
 
-    Row.Label.TextTransparency = Row.Disabled and 0.75
-        or Selected and 0
-        or Row.Hovering and 0.08
+    Row.Label.TextTransparency =
+        Row.Disabled
+        and 0.75
+        or Selected
+            and 0
+        or Row.Hovering
+            and 0.08
         or 0.3
 
-    Row.Check.ImageTransparency = Selected and (Row.Disabled and 0.7 or 0) or 1
+    Row.Check.ImageTransparency =
+        Selected
+        and (
+            Row.Disabled
+            and 0.7
+            or 0
+        )
+        or 1
 
     if Row.Image then
-        Row.Image.ImageTransparency = Row.Disabled and 0.78
-            or Selected and 0
-            or Row.Hovering and 0.08
+        Row.Image.ImageTransparency =
+            Row.Disabled
+            and 0.78
+            or Selected
+                and 0
+            or Row.Hovering
+                and 0.08
             or 0.32
+    end
+
+    if Row.MetaLabel then
+        local Meta =
+            Row.Metadata
+
+        local Details =
+            {}
+
+        local Rarity =
+            tostring(
+                Meta.Rarity
+                or ""
+            )
+
+        local WorldText =
+            tostring(
+                Meta.WorldText
+                or ""
+            )
+
+        if Rarity ~= "" then
+            table.insert(
+                Details,
+                Rarity:upper()
+            )
+        end
+
+        if WorldText ~= "" then
+            table.insert(
+                Details,
+                WorldText
+            )
+        end
+
+        if Meta.SingleHarvest == true then
+            table.insert(
+                Details,
+                "Single Harvest"
+            )
+        end
+
+        Row.MetaLabel.Text =
+            table.concat(
+                Details,
+                "  ·  "
+            )
+
+        Row.MetaLabel.TextTransparency =
+            Row.Disabled
+            and 0.82
+            or Selected
+                and 0.16
+            or 0.46
+
+        if typeof(
+            Meta.RarityColor
+        ) == "Color3" then
+            Row.MetaLabel.TextColor3 =
+                Meta.RarityColor
+
+            if Row.RarityBar then
+                Row.RarityBar.BackgroundColor3 =
+                    Meta.RarityColor
+            end
+        else
+            Row.MetaLabel.TextColor3 =
+                Library.Scheme.FontColor
+
+            if Row.RarityBar then
+                Row.RarityBar.BackgroundColor3 =
+                    Library.Scheme.AccentColor
+            end
+        end
+
+        Row.PriceLabel.Text =
+            tostring(
+                Meta.PriceText
+                or ""
+            )
+
+        local Stock =
+            tonumber(
+                Meta.Stock
+            )
+
+        local GetLiveStock =
+            self:GetInfo()
+                .GetLiveStock
+
+        if Row.Container.Visible
+        and type(GetLiveStock) == "function" then
+            local Ok,
+                Result =
+                pcall(
+                    GetLiveStock,
+                    Row.Value
+                )
+
+            if Ok then
+                Stock =
+                    tonumber(Result)
+            end
+        end
+
+        local RightParts =
+            {}
+
+        local ValueText =
+            tostring(
+                Meta.ValueText
+                or ""
+            )
+
+        if ValueText ~= "" then
+            table.insert(
+                RightParts,
+                ValueText
+            )
+        end
+
+        if Stock ~= nil then
+            table.insert(
+                RightParts,
+                Stock > 0
+                and tostring(
+                    math.floor(Stock)
+                )
+                    .. " stock"
+                or "Out of stock"
+            )
+        end
+
+        Row.StockLabel.Text =
+            table.concat(
+                RightParts,
+                "  ·  "
+            )
+
+        Row.PriceLabel.TextTransparency =
+            Row.Disabled
+            and 0.82
+            or Selected
+                and 0.08
+            or 0.34
+
+        Row.StockLabel.TextTransparency =
+            Row.Disabled
+            and 0.84
+            or Selected
+                and 0.24
+            or 0.50
     end
 end
 
@@ -9278,41 +10235,154 @@ function DropdownPicker:RefreshRows()
         return
     end
 
-    local Query = tostring(self.SearchBox.Text or ""):lower()
-    local VisibleCount = 0
+    local Query =
+        tostring(
+            self.SearchBox.Text
+            or ""
+        ):lower()
+
+    local VisibleCount =
+        0
+
+    local SelectedInWorld =
+        0
+
+    local MasterValue =
+        self.Config.Info.MasterValue
+
+    local MasterActive =
+        MasterValue ~= nil
+        and self.Config.Dropdown.Multi
+        and self.Draft[MasterValue] == true
 
     for _, Row in self.Rows do
-        local Matches = Query == "" or Row.SearchText:find(Query, 1, true) ~= nil
-        local Selected = self:IsSelected(Row.Value)
+        local MatchesSearch =
+            Query == ""
+            or Row.SearchText:find(
+                Query,
+                1,
+                true
+            ) ~= nil
 
-        Row.Container.Visible = Matches and (not self.SelectedOnly or Selected)
-        VisibleCount = VisibleCount + (Row.Container.Visible and 1 or 0)
+        local MatchesWorld =
+            self:WorldMatches(
+                Row
+            )
 
-        self:UpdateRow(Row)
+        local MatchesRarity =
+            self:RarityMatches(
+                Row
+            )
+
+        local Selected =
+            self:IsSelected(
+                Row.Value
+            )
+
+        local Matches =
+            MatchesSearch
+            and MatchesWorld
+            and MatchesRarity
+
+        Row.Container.Visible =
+            Matches
+            and (
+                not self.SelectedOnly
+                or Selected
+            )
+
+        if Row.Container.Visible then
+            VisibleCount += 1
+        end
+
+        if Selected
+        and MatchesWorld then
+            SelectedInWorld += 1
+        end
+
+        self:UpdateRow(
+            Row
+        )
     end
 
-    local SelectedCount = self:GetSelectedCount()
-    local TotalCount = #self.Config.Dropdown.Values
+    local SelectedCount =
+        self:GetSelectedCount()
 
-    self.CountLabel.Text = tostring(SelectedCount) .. " selected"
+    local TotalCount =
+        #self.Rows
 
-    self.SummaryLabel.Text = string.format(
-        "%d of %d selected  •  %d shown",
-        SelectedCount,
-        TotalCount,
-        VisibleCount
-    )
+    local HiddenWorldCount =
+        math.max(
+            0,
+            SelectedCount
+                - SelectedInWorld
+        )
 
-    self.EmptyLabel.Text = Query ~= "" and "No matching options"
-        or self.SelectedOnly and "No selected options"
+    self.CountLabel.Text =
+        MasterActive
+        and "All "
+            .. tostring(
+                TotalCount
+            )
+            .. " enabled"
+        or tostring(
+            SelectedCount
+        )
+            .. " selected"
+
+    self.SummaryLabel.Text =
+        MasterActive
+        and string.format(
+            "All %d enabled  •  %d shown",
+            TotalCount,
+            VisibleCount
+        )
+        or string.format(
+            "%d selected  •  %d shown",
+            SelectedCount,
+            VisibleCount
+        )
+
+    if HiddenWorldCount > 0 then
+        self.SummaryLabel.Text ..=
+            "  •  "
+            .. tostring(
+                HiddenWorldCount
+            )
+            .. " selected in another world"
+    end
+
+    self.EmptyLabel.Text =
+        Query ~= ""
+        and "No matching options"
+        or self.SelectedOnly
+            and "No selected options"
         or "No options available"
 
-    self.EmptyLabel.Visible = VisibleCount == 0
+    self.EmptyLabel.Visible =
+        VisibleCount == 0
 
-    self.AllButton.BackgroundTransparency = self.SelectedOnly and 0.92 or 0.72
-    self.AllButton.TextTransparency = self.SelectedOnly and 0.22 or 0
-    self.SelectedButton.BackgroundTransparency = self.SelectedOnly and 0.72 or 0.92
-    self.SelectedButton.TextTransparency = self.SelectedOnly and 0 or 0.22
+    self.AllButton.BackgroundTransparency =
+        self.SelectedOnly
+        and 0.92
+        or 0.72
+
+    self.AllButton.TextTransparency =
+        self.SelectedOnly
+        and 0.22
+        or 0
+
+    self.SelectedButton.BackgroundTransparency =
+        self.SelectedOnly
+        and 0.72
+        or 0.92
+
+    self.SelectedButton.TextTransparency =
+        self.SelectedOnly
+        and 0
+        or 0.22
+
+    self:UpdateFilterButtons()
 end
 
 function DropdownPicker:RebuildRows()
@@ -9326,34 +10396,111 @@ function DropdownPicker:RebuildRows()
         end
     end
 
-    table.clear(self.Rows)
+    table.clear(
+        self.Rows
+    )
+
     self:NormalizeDraft()
 
-    local Dropdown = self.Config.Dropdown
-    local Info = self.Config.Info
-    local PickerCheckIcon = Library:GetIcon("check")
+    local Dropdown =
+        self.Config.Dropdown
 
-    for Index, Value in Dropdown.Values do
-        local FormattedValue = tostring(
-            Info.FormatListValue and Info.FormatListValue(Value) or Value
+    local Info =
+        self.Config.Info
+
+    local PickerCheckIcon =
+        Library:GetIcon(
+            "check"
         )
 
-        local IsDisabled = table.find(Dropdown.DisabledValues, Value) ~= nil
-        local ValueImage = self.Config.GetValueImage(Value)
+    local Values =
+        self:GetSortedValues()
+
+    for Index, Value in Values do
+        local FormattedValue =
+            tostring(
+                Info.FormatListValue
+                and Info.FormatListValue(
+                    Value
+                )
+                or Value
+            )
+
+        local IsDisabled =
+            table.find(
+                Dropdown.DisabledValues,
+                Value
+            ) ~= nil
+
+        local ValueImage =
+            self.Config.GetValueImage(
+                Value
+            )
 
         local Row = {
             Value = Value,
             Disabled = IsDisabled,
             Hovering = false,
-            SearchText = FormattedValue:lower(),
+            Metadata =
+                self:GetMetadata(
+                    Value
+                ),
         }
+
+        local MetadataSearch =
+            table.concat(
+                {
+                    tostring(
+                        Row.Metadata.Rarity
+                        or ""
+                    ),
+
+                    tostring(
+                        Row.Metadata.WorldText
+                        or ""
+                    ),
+
+                    tostring(
+                        Row.Metadata.PriceText
+                        or ""
+                    ),
+
+                    tostring(
+                        Row.Metadata.ValueText
+                        or ""
+                    ),
+
+                    Row.Metadata.SingleHarvest == true
+                    and "single harvest"
+                    or "",
+                },
+                " "
+            )
+
+        Row.SearchText =
+            (
+                FormattedValue
+                .. " "
+                .. MetadataSearch
+            ):lower()
+
+        local Rich =
+            Info.RichPicker == true
+
+        local RowHeight =
+            Rich
+            and 58
+            or 34
 
         Row.Container = New("TextButton", {
             Active = not IsDisabled,
             BackgroundColor3 = "AccentColor",
             BackgroundTransparency = 1,
             LayoutOrder = Index,
-            Size = UDim2.fromOffset(280, 34),
+            Size = UDim2.fromOffset(
+                280,
+                RowHeight
+            ),
             Text = "",
             ZIndex = self.Grid.ZIndex + 1,
             Parent = self.Grid,
@@ -9370,14 +10517,58 @@ function DropdownPicker:RebuildRows()
             Parent = Row.Container,
         })
 
+        if Rich then
+            Row.RarityBar = New("Frame", {
+                BackgroundColor3 = "AccentColor",
+                BorderSizePixel = 0,
+                Position = UDim2.fromOffset(0, 7),
+                Size = UDim2.new(
+                    0,
+                    3,
+                    1,
+                    -14
+                ),
+                ZIndex = Row.Container.ZIndex + 1,
+                Parent = Row.Container,
+            })
+
+            New("UICorner", {
+                CornerRadius = UDim.new(1, 0),
+                Parent = Row.RarityBar,
+            })
+        end
+
         if ValueImage then
             Row.Image = New("ImageLabel", {
+                BackgroundTransparency = 1,
                 Image = ValueImage.Url,
-                ImageRectOffset = ValueImage.ImageRectOffset or Vector2.zero,
-                ImageRectSize = ValueImage.ImageRectSize or Vector2.zero,
+                ImageRectOffset =
+                    ValueImage.ImageRectOffset
+                    or Vector2.zero,
+                ImageRectSize =
+                    ValueImage.ImageRectSize
+                    or Vector2.zero,
                 ImageTransparency = 0.32,
-                Position = UDim2.fromOffset(9, 8),
-                Size = UDim2.fromOffset(18, 18),
+                Position =
+                    Rich
+                    and UDim2.fromOffset(
+                        10,
+                        10
+                    )
+                    or UDim2.fromOffset(
+                        9,
+                        8
+                    ),
+                Size =
+                    Rich
+                    and UDim2.fromOffset(
+                        38,
+                        38
+                    )
+                    or UDim2.fromOffset(
+                        18,
+                        18
+                    ),
                 ZIndex = Row.Container.ZIndex + 1,
                 Parent = Row.Container,
             })
@@ -9385,8 +10576,51 @@ function DropdownPicker:RebuildRows()
 
         Row.Label = New("TextLabel", {
             BackgroundTransparency = 1,
-            Position = ValueImage and UDim2.fromOffset(34, 0) or UDim2.fromOffset(10, 0),
-            Size = ValueImage and UDim2.new(1, -70, 1, 0) or UDim2.new(1, -46, 1, 0),
+
+            Position =
+                Rich
+                and UDim2.fromOffset(
+                    ValueImage
+                    and 56
+                    or 12,
+                    5
+                )
+                or ValueImage
+                    and UDim2.fromOffset(
+                        34,
+                        0
+                    )
+                or UDim2.fromOffset(
+                    10,
+                    0
+                ),
+
+            Size =
+                Rich
+                and UDim2.new(
+                    0.58,
+                    -(
+                        ValueImage
+                        and 56
+                        or 12
+                    ),
+                    0,
+                    23
+                )
+                or ValueImage
+                    and UDim2.new(
+                        1,
+                        -70,
+                        1,
+                        0
+                    )
+                or UDim2.new(
+                    1,
+                    -46,
+                    1,
+                    0
+                ),
+
             Text = FormattedValue,
             TextSize = 13,
             TextTransparency = 0.3,
@@ -9396,14 +10630,105 @@ function DropdownPicker:RebuildRows()
             Parent = Row.Container,
         })
 
+        if Rich then
+            Row.MetaLabel = New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(
+                    ValueImage
+                    and 56
+                    or 12,
+                    30
+                ),
+                Size = UDim2.new(
+                    0.68,
+                    -(
+                        ValueImage
+                        and 56
+                        or 12
+                    ),
+                    0,
+                    18
+                ),
+                Text = "",
+                TextSize = 10,
+                TextTransparency = 0.46,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = Row.Container.ZIndex + 1,
+                Parent = Row.Container,
+            })
+
+            Row.PriceLabel = New("TextLabel", {
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(
+                    1,
+                    -34,
+                    0,
+                    5
+                ),
+                Size = UDim2.new(
+                    0.42,
+                    -8,
+                    0,
+                    22
+                ),
+                Text = "",
+                TextSize = 11,
+                TextTransparency = 0.34,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                ZIndex = Row.Container.ZIndex + 1,
+                Parent = Row.Container,
+            })
+
+            Row.StockLabel = New("TextLabel", {
+                AnchorPoint = Vector2.new(1, 0),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(
+                    1,
+                    -34,
+                    0,
+                    30
+                ),
+                Size = UDim2.new(
+                    0.48,
+                    -8,
+                    0,
+                    18
+                ),
+                Text = "",
+                TextSize = 10,
+                TextTransparency = 0.50,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                TextXAlignment = Enum.TextXAlignment.Right,
+                ZIndex = Row.Container.ZIndex + 1,
+                Parent = Row.Container,
+            })
+        end
+
         Row.Check = New("ImageLabel", {
             AnchorPoint = Vector2.new(1, 0.5),
-            Image = PickerCheckIcon and PickerCheckIcon.Url or "",
+            Image =
+                PickerCheckIcon
+                and PickerCheckIcon.Url
+                or "",
             ImageColor3 = "FontColor",
-            ImageRectOffset = PickerCheckIcon and PickerCheckIcon.ImageRectOffset or Vector2.zero,
-            ImageRectSize = PickerCheckIcon and PickerCheckIcon.ImageRectSize or Vector2.zero,
+            ImageRectOffset =
+                PickerCheckIcon
+                and PickerCheckIcon.ImageRectOffset
+                or Vector2.zero,
+            ImageRectSize =
+                PickerCheckIcon
+                and PickerCheckIcon.ImageRectSize
+                or Vector2.zero,
             ImageTransparency = 1,
-            Position = UDim2.new(1, -10, 0.5, 0),
+            Position = UDim2.new(
+                1,
+                -10,
+                0.5,
+                0
+            ),
             Size = UDim2.fromOffset(15, 15),
             ZIndex = Row.Container.ZIndex + 1,
             Parent = Row.Container,
@@ -9422,30 +10747,63 @@ function DropdownPicker:RebuildRows()
         end)
 
         Row.Container.MouseButton1Click:Connect(function()
-            if Row.Disabled or not self.Config then
+            if Row.Disabled
+            or not self.Config then
                 return
             end
 
             if Dropdown.Multi then
-                local Selected = self.Draft[Row.Value] == true
+                local Selected =
+                    self.Draft[
+                        Row.Value
+                    ] == true
 
-                if Selected and not Info.AllowNull and self:GetSelectedCount() <= 1 then
+                if Info.MasterValue ~= nil
+                and self.Draft[
+                    Info.MasterValue
+                ] == true then
+                    table.clear(
+                        self.Draft
+                    )
+
+                    Selected =
+                        false
+                end
+
+                if Selected
+                and not Info.AllowNull
+                and self:GetSelectedCount() <= 1 then
                     return
                 end
 
-                self.Draft[Row.Value] = not Selected and true or nil
+                self.Draft[Row.Value] =
+                    not Selected
+                    and true
+                    or nil
+
                 self:RefreshRows()
             else
-                self.Draft = self.Draft == Row.Value and Info.AllowNull and nil or Row.Value
+                self.Draft =
+                    self.Draft == Row.Value
+                    and Info.AllowNull
+                    and nil
+                    or Row.Value
 
-                local ValueToApply = self.Draft
+                local ValueToApply =
+                    self.Draft
 
                 self:Close()
-                Dropdown:SetValue(ValueToApply)
+
+                Dropdown:SetValue(
+                    ValueToApply
+                )
             end
         end)
 
-        table.insert(self.Rows, Row)
+        table.insert(
+            self.Rows,
+            Row
+        )
     end
 
     self:UpdateGrid()
@@ -9486,8 +10844,59 @@ function DropdownPicker:Open(Config)
     self.SelectedOnly = false
     self.Active = true
     self.AnimationToken = self.AnimationToken + 1
+    self.RefreshToken = self.RefreshToken + 1
+
+    local RefreshToken =
+        self.RefreshToken
+
+    local Rich =
+        Config.Info.RichPicker == true
 
     self:SetDraftFromDropdown()
+
+    self.MasterButton.Visible =
+        Rich
+        and Config.Info.MasterValue ~= nil
+
+    self.FilterToolbar.Visible =
+        Rich
+
+    self.Toolbar.Position =
+        Rich
+        and UDim2.fromOffset(
+            12,
+            132
+        )
+        or UDim2.fromOffset(
+            12,
+            90
+        )
+
+    self.GridHolder.Position =
+        Rich
+        and UDim2.fromOffset(
+            12,
+            208
+        )
+        or UDim2.fromOffset(
+            12,
+            128
+        )
+
+    self.GridHolder.Size =
+        Rich
+        and UDim2.new(
+            1,
+            -24,
+            1,
+            -266
+        )
+        or UDim2.new(
+            1,
+            -24,
+            1,
+            -186
+        )
 
     self.Title.Text = tostring(
         Config.Info.PickerTitle
@@ -9547,6 +10956,24 @@ function DropdownPicker:Open(Config)
             end
         end)
     end
+
+    if Rich then
+        task.spawn(function()
+            while self.Active
+            and self.RefreshToken == RefreshToken
+            and self.Config == Config do
+                task.wait(
+                    0.75
+                )
+
+                if self.Active
+                and self.RefreshToken == RefreshToken
+                and self.Config == Config then
+                    self:RefreshRows()
+                end
+            end
+        end)
+    end
 end
 
 function DropdownPicker:Close()
@@ -9559,6 +10986,7 @@ function DropdownPicker:Close()
     self.Active = false
     self.Config = nil
     self.AnimationToken = self.AnimationToken + 1
+    self.RefreshToken = self.RefreshToken + 1
 
     local Token = self.AnimationToken
 
@@ -16393,11 +17821,15 @@ do
             Values = Info.Values,
             DisabledValues = Info.DisabledValues,
             ValueImages = Info.ValueImages,
+            ValueMetadata = Info.ValueMetadata,
 
             Multi = Info.Multi,
             Popout = Info.Popout,
             PopoutThreshold = Info.PopoutThreshold,
             PickerTitle = Info.PickerTitle,
+            RichPicker = Info.RichPicker,
+            MasterValue = Info.MasterValue,
+            MasterText = Info.MasterText,
             Open = false,
 
             SpecialType = Info.SpecialType,
@@ -17048,6 +18480,25 @@ do
             Dropdown.ValueImages = ValueImages
             Dropdown:BuildDropdownList()
             Library:RefreshDropdownPicker(Dropdown, false)
+        end
+
+        function Dropdown:SetValueMetadata(ValueMetadata)
+            if typeof(ValueMetadata) ~= "table" then
+                return
+            end
+
+            Dropdown.ValueMetadata =
+                ValueMetadata
+
+            Info.ValueMetadata =
+                ValueMetadata
+
+            Dropdown:BuildDropdownList()
+
+            Library:RefreshDropdownPicker(
+                Dropdown,
+                false
+            )
         end
 
         function Dropdown:AddValueImages(ValueImages)
