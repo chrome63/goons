@@ -317,16 +317,16 @@ local Library = {
 
         OutlineColor =
             Color3.fromRGB(
-                41,
-                47,
-                57
+                55,
+                66,
+                82
             ),
 
         WindowBorderColor =
             Color3.fromRGB(
-                62,
-                68,
-                80
+                76,
+                89,
+                108
             ),
 
         OuterRimColor =
@@ -338,16 +338,16 @@ local Library = {
 
         InnerBorderColor =
             Color3.fromRGB(
-                48,
-                54,
-                65
+                55,
+                66,
+                82
             ),
 
         ControlBorderColor =
             Color3.fromRGB(
-                41,
-                47,
-                57
+                55,
+                66,
+                82
             ),
 
         SeparatorColor =
@@ -785,16 +785,16 @@ Library.Themes = {
 
         OutlineColor =
             Color3.fromRGB(
-                41,
-                47,
-                57
+                55,
+                66,
+                82
             ),
 
         WindowBorderColor =
             Color3.fromRGB(
-                62,
-                68,
-                80
+                76,
+                89,
+                108
             ),
 
         OuterRimColor =
@@ -806,16 +806,16 @@ Library.Themes = {
 
         InnerBorderColor =
             Color3.fromRGB(
-                48,
-                54,
-                65
+                55,
+                66,
+                82
             ),
 
         ControlBorderColor =
             Color3.fromRGB(
-                41,
-                47,
-                57
+                55,
+                66,
+                82
             ),
 
         SeparatorColor =
@@ -1823,10 +1823,15 @@ function Library:SetDPIScale(DPIScale: number)
 
                 stroke.Thickness =
                     math.clamp(
-                        baseThickness
-                        / math.max(
-                            Library.DPIScale,
-                            0.05
+                        math.floor(
+                            (
+                                baseThickness
+                                / math.max(
+                                    Library.DPIScale,
+                                    0.05
+                                )
+                            )
+                            + 0.5
                         ),
                         baseThickness,
                         baseThickness * 2
@@ -2038,13 +2043,18 @@ local function New(ClassName: string, Properties: { [string]: any }): any
 
         Instance.Thickness =
             math.clamp(
-                baseThickness
-                / math.max(
-                    tonumber(
-                        Library.DPIScale
+                math.floor(
+                    (
+                        baseThickness
+                        / math.max(
+                            tonumber(
+                                Library.DPIScale
+                            )
+                            or 1,
+                            0.05
+                        )
                     )
-                    or 1,
-                    0.05
+                    + 0.5
                 ),
                 baseThickness,
                 baseThickness * 2
@@ -2238,12 +2248,10 @@ do
         Size = UDim2.new(0, 300, 1, -6),
         Parent = ScreenGui,
     })
-    table.insert(
-        Library.Scales,
-        New("UIScale", {
-            Parent = NotificationArea,
-        })
-    )
+    New("UIScale", {
+        Scale = 1,
+        Parent = NotificationArea,
+    })
 
     NotificationList = New("UIListLayout", {
         HorizontalAlignment = Enum.HorizontalAlignment.Right,
@@ -12967,7 +12975,7 @@ do
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextSize = 14,
-                TextTransparency = 0.35,
+                TextTransparency = 0.06,
                 Visible = Button.Visible,
                 Parent = Holder,
             })
@@ -13086,7 +13094,7 @@ do
                             3
                         )
                         or Library.Scheme.MainColor,
-                    Hovering and 0.05 or 0.35,
+                    Hovering and 0.02 or 0.06,
                     Hovering
                         and Library.Scheme.AccentColor
                         or Library.Scheme.OutlineColor,
@@ -13161,7 +13169,7 @@ do
 
                 SubButton.Base.BackgroundColor3 = SubButton.Disabled and Library.Scheme.BackgroundColor
                     or Library.Scheme.MainColor
-                SubButton.Base.TextTransparency = SubButton.Disabled and 0.8 or 0.35
+                SubButton.Base.TextTransparency = SubButton.Disabled and 0.72 or 0.06
                 SubButton.Stroke.Transparency = SubButton.Disabled and 0.5 or 0
 
                 Library.Registry[SubButton.Base].BackgroundColor3 = SubButton.Disabled and "BackgroundColor"
@@ -13222,7 +13230,7 @@ do
 
             Button.Base.BackgroundColor3 = Button.Disabled and Library.Scheme.BackgroundColor
                 or Library.Scheme.MainColor
-            Button.Base.TextTransparency = Button.Disabled and 0.8 or 0.35
+            Button.Base.TextTransparency = Button.Disabled and 0.72 or 0.06
             Button.Stroke.Transparency = Button.Disabled and 0.5 or 0
 
             Library.Registry[Button.Base].BackgroundColor3 = Button.Disabled and "BackgroundColor" or "MainColor"
@@ -13350,7 +13358,7 @@ do
                 Size = UDim2.fromScale(1, 1),
                 Text = Button.Text,
                 TextSize = 14,
-                TextTransparency = Button.Disabled and 0.8 or 0.35,
+                TextTransparency = Button.Disabled and 0.72 or 0.06,
                 Visible = Button.Visible,
                 Parent = Holder,
             })
@@ -13389,8 +13397,8 @@ do
                     or Library.Scheme.MainColor
 
                 Base.TextTransparency =
-                    Button.Disabled and 0.8
-                    or 0.35
+                    Button.Disabled and 0.72
+                    or 0.06
 
                 Stroke.Transparency =
                     Button.Disabled and 0.5
@@ -13452,7 +13460,7 @@ do
                 end
 
                 TweenService:Create(Base, Library.TweenInfo, {
-                    TextTransparency = 0.35,
+                    TextTransparency = 0.06,
                 }):Play()
             end)
 
@@ -13692,7 +13700,7 @@ do
             Size = UDim2.new(0.50, -8, 1, 0),
             Text = "Pet",
             TextSize = 13,
-            TextTransparency = 0.35,
+            TextTransparency = 0.06,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Header,
         })
@@ -13703,7 +13711,7 @@ do
             Size = UDim2.new(0.18, 0, 1, 0),
             Text = "Max",
             TextSize = 13,
-            TextTransparency = 0.35,
+            TextTransparency = 0.06,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Header,
         })
@@ -13714,7 +13722,7 @@ do
             Size = UDim2.new(0.14, 0, 1, 0),
             Text = "BW",
             TextSize = 13,
-            TextTransparency = 0.35,
+            TextTransparency = 0.06,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Header,
         })
@@ -13725,7 +13733,7 @@ do
             Size = UDim2.new(0.16, -8, 1, 0),
             Text = "Pri",
             TextSize = 13,
-            TextTransparency = 0.35,
+            TextTransparency = 0.06,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Header,
         })
@@ -15295,7 +15303,7 @@ do
                     AutoJoinLayout
                     and 10
                     or 12,
-                TextTransparency = 0.35,
+                TextTransparency = 0.06,
                 TextXAlignment = align or Enum.TextXAlignment.Left,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 Parent = Header,
@@ -19887,21 +19895,147 @@ function Library:Notify(...)
     local Info = select(1, ...)
 
     if typeof(Info) == "table" then
-        Data.Title = tostring(Info.Title)
-        Data.Description = tostring(Info.Description)
-        Data.Time = Info.Time or 5
-        Data.SoundId = Info.SoundId
-        Data.Steps = Info.Steps
-        Data.Persist = Info.Persist
-        Data.Icon = Info.Icon
-        Data.BigIcon = Info.BigIcon
-        Data.IconColor = Info.IconColor
+
+        Data.Title =
+            Info.Title ~= nil
+            and tostring(
+                Info.Title
+            )
+            or nil
+
+        Data.Description =
+            Info.Description ~= nil
+            and tostring(
+                Info.Description
+            )
+            or ""
+
+        Data.Time =
+            Info.Time
+            or 5
+
+        Data.SoundId =
+            Info.SoundId
+
+        Data.Steps =
+            Info.Steps
+
+        Data.Persist =
+            Info.Persist
+
+        Data.Icon =
+            Info.Icon
+
+        Data.BigIcon =
+            Info.BigIcon
+
+        Data.IconColor =
+            Info.IconColor
+
+        Data.Type =
+            tostring(
+                Info.Type
+                or Info.Kind
+                or "info"
+            ):lower()
+
+        Data.AccentColor =
+            Info.AccentColor
+
     else
-        Data.Description = tostring(Info)
-        Data.Time = select(2, ...) or 5
-        Data.SoundId = select(3, ...)
+
+        Data.Description =
+            tostring(
+                Info
+            )
+
+        Data.Time =
+            select(
+                2,
+                ...
+            )
+            or 5
+
+        Data.SoundId =
+            select(
+                3,
+                ...
+            )
+
+        Data.Type =
+            "info"
     end
-    Data.Destroyed = false
+
+    local notificationText =
+        (
+            tostring(
+                Data.Title
+                or ""
+            )
+            .. " "
+            .. tostring(
+                Data.Description
+                or ""
+            )
+        ):lower()
+
+    if typeof(
+        Data.AccentColor
+    ) ~= "Color3" then
+
+        if Data.Type == "discord"
+        or notificationText:find(
+            "discord",
+            1,
+            true
+        ) then
+
+            Data.AccentColor =
+                Color3.fromRGB(
+                    88,
+                    101,
+                    242
+                )
+
+        elseif Data.Type == "success"
+        or notificationText:find(
+            "success",
+            1,
+            true
+        ) then
+
+            Data.AccentColor =
+                Library.Scheme.SuccessColor
+
+        elseif Data.Type == "warning" then
+
+            Data.AccentColor =
+                Library.Scheme.WarningColor
+
+        elseif Data.Type == "error"
+        or notificationText:find(
+            "failed",
+            1,
+            true
+        )
+        or notificationText:find(
+            "error",
+            1,
+            true
+        ) then
+
+            Data.AccentColor =
+                Library.Scheme.RedColor
+
+        else
+
+            Data.AccentColor =
+                Library.Scheme.AccentColor
+        end
+    end
+
+    Data.Destroyed =
+        false
 
     local DeletedInstance = false
     local DeleteConnection = nil
@@ -19917,7 +20051,7 @@ function Library:Notify(...)
     local FakeBackground = New("Frame", {
         AutomaticSize = Enum.AutomaticSize.Y,
         BackgroundTransparency = 1,
-        Size = UDim2.fromScale(1, 0),
+        Size = UDim2.fromOffset(286, 0),
         Visible = false,
         Parent = NotificationArea,
     })
@@ -19925,35 +20059,63 @@ function Library:Notify(...)
     local Holder = New("Frame", {
         AutomaticSize = Enum.AutomaticSize.Y,
         BackgroundColor3 = "MainColor",
-        Position = Library.NotifySide:lower() == "left" and UDim2.new(-1, -8, 0, -2) or UDim2.new(1, 8, 0, -2),
-        Size = UDim2.fromScale(1, 1),
+
+        Position =
+            Library.NotifySide:lower() == "left"
+            and UDim2.new(
+                -1,
+                -8,
+                0,
+                -2
+            )
+            or UDim2.new(
+                1,
+                8,
+                0,
+                -2
+            ),
+
+        Size =
+            UDim2.new(
+                1,
+                0,
+                0,
+                0
+            ),
+
         ZIndex = 5,
         Parent = FakeBackground,
     })
+
     table.insert(
         Library.Corners,
         New("UICorner", {
-            CornerRadius = UDim.new(0, Library.CornerRadius),
+            CornerRadius = UDim.new(0, 10),
             Parent = Holder,
         })
     )
+
     New("UIListLayout", {
         Padding = UDim.new(0, 4),
         Parent = Holder,
     })
+
     New("UIPadding", {
-        PaddingBottom = UDim.new(0, 8),
-        PaddingLeft = UDim.new(0, 8),
-        PaddingRight = UDim.new(0, 8),
-        PaddingTop = UDim.new(0, 8),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 12),
+        PaddingRight = UDim.new(0, 12),
+        PaddingTop = UDim.new(0, 10),
         Parent = Holder,
     })
-    Library:AddOutline(Holder)
+
+    Library:AddOutline(
+        Holder
+    )
 
     local ContentContainer = New("Frame", {
         BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.XY,
-        Size = UDim2.fromScale(1, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Size = UDim2.new(1, 0, 0, 0),
         Parent = Holder,
     })
     
@@ -19982,22 +20144,36 @@ function Library:Notify(...)
         end
     end
 
+    local TextColumnWidth =
+        BigIconLabel
+        and 230
+        or 262
+
     local TextContainer = New("Frame", {
         BackgroundTransparency = 1,
-        AutomaticSize = Enum.AutomaticSize.XY,
-        Size = UDim2.fromScale(0, 0),
+        AutomaticSize = Enum.AutomaticSize.Y,
+        Size = UDim2.fromOffset(
+            TextColumnWidth,
+            0
+        ),
         Parent = ContentContainer,
     })
+
     New("UIListLayout", {
         Padding = UDim.new(0, 4),
         Parent = TextContainer,
     })
-    
+
     local TitleContainer
+
     if Data.Title then
+
         TitleContainer = New("Frame", {
             BackgroundTransparency = 1,
-            Size = UDim2.fromScale(0, 0),
+            Size = UDim2.fromOffset(
+                TextColumnWidth,
+                20
+            ),
             Parent = TextContainer,
         })
     end
@@ -20022,60 +20198,147 @@ function Library:Notify(...)
 
     local Title
     local Desc
-    local TitleX = 0
-    local DescX = 0
-
     local TimerFill
 
     if Data.Title then
+
         Title = New("TextLabel", {
             AutomaticSize = Enum.AutomaticSize.None,
+
+            AnchorPoint =
+                Vector2.new(
+                    0,
+                    0.5
+                ),
+
             BackgroundTransparency = 1,
-            AnchorPoint = Vector2.new(0, 0.5),
-            Position = UDim2.new(0, (Data.Icon and 21 or 0), 0.5, 0),
-            Size = UDim2.fromScale(0, 0),
+
+            FontFace =
+                function()
+
+                    return Library:GetWeightedFont(
+                        Enum.FontWeight.SemiBold
+                    )
+                end,
+
+            Position =
+                UDim2.new(
+                    0,
+                    IconLabel
+                    and 21
+                    or 0,
+                    0.5,
+                    0
+                ),
+
+            Size =
+                UDim2.fromOffset(
+                    TextColumnWidth
+                        - (
+                            IconLabel
+                            and 21
+                            or 0
+                        ),
+                    20
+                ),
+
             Text = Data.Title,
             TextSize = 15,
+            TextTransparency = 0,
+            TextTruncate = Enum.TextTruncate.AtEnd,
+            TextWrapped = false,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
-            TextWrapped = true,
             Parent = TitleContainer,
         })
     end
 
-    if Data.Description then
+    if Data.Description ~= nil
+    and Data.Description ~= "" then
+
         Desc = New("TextLabel", {
             AutomaticSize = Enum.AutomaticSize.None,
             BackgroundTransparency = 1,
-            Size = UDim2.fromScale(0, 0),
+
+            Size =
+                UDim2.fromOffset(
+                    TextColumnWidth,
+                    18
+                ),
+
             Text = Data.Description,
-            TextSize = 14,
-            TextXAlignment = Enum.TextXAlignment.Left,
+            TextSize = 13,
+            TextTransparency = 0.08,
             TextWrapped = true,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            TextYAlignment = Enum.TextYAlignment.Top,
             Parent = TextContainer,
         })
     end
 
     function Data:Resize()
-        local ExtraWidth = BigIconLabel and 32 or 0
-        local IconWidth = IconLabel and 21 or 0
+
+        local IconWidth =
+            IconLabel
+            and 21
+            or 0
 
         if Title then
-            local X, Y =
-                Library:GetTextBounds(Title.Text, Title.FontFace, Title.TextSize, (NotificationArea.AbsoluteSize.X / Library.DPIScale) - 24 - ExtraWidth - IconWidth)
-            Title.Size = UDim2.fromOffset(X, Y)
-            TitleX = X + IconWidth
-            TitleContainer.Size = UDim2.fromOffset(TitleX, math.max(Y, IconLabel and 16 or 0))
+
+            Title.Position =
+                UDim2.new(
+                    0,
+                    IconWidth,
+                    0.5,
+                    0
+                )
+
+            Title.Size =
+                UDim2.fromOffset(
+                    TextColumnWidth
+                        - IconWidth,
+                    20
+                )
+
+            TitleContainer.Size =
+                UDim2.fromOffset(
+                    TextColumnWidth,
+                    20
+                )
         end
 
         if Desc then
-            local X, Y =
-                Library:GetTextBounds(Desc.Text, Desc.FontFace, Desc.TextSize, (NotificationArea.AbsoluteSize.X / Library.DPIScale) - 24 - ExtraWidth)
-            Desc.Size = UDim2.fromOffset(X, Y)
-            DescX = X
+
+            local _,
+                height =
+                Library:GetTextBounds(
+                    Desc.Text,
+                    Desc.FontFace,
+                    Desc.TextSize,
+                    TextColumnWidth
+                )
+
+            Desc.Size =
+                UDim2.fromOffset(
+                    TextColumnWidth,
+                    math.max(
+                        18,
+                        height + 2
+                    )
+                )
         end
 
-        FakeBackground.Size = UDim2.fromOffset(math.max(TitleX, DescX) + 24 + ExtraWidth, 0)
+        TextContainer.Size =
+            UDim2.fromOffset(
+                TextColumnWidth,
+                0
+            )
+
+        FakeBackground.Size =
+            UDim2.fromOffset(
+                286,
+                0
+            )
     end
 
     function Data:ChangeTitle(Text)
@@ -20133,17 +20396,28 @@ function Library:Notify(...)
         Parent = Holder,
     })
     local TimerBar = New("Frame", {
-        BackgroundColor3 = "BackgroundColor",
-        BorderColor3 = "OutlineColor",
-        BorderSizePixel = 1,
+        BackgroundColor3 = "SeparatorColor",
+        BorderSizePixel = 0,
         Position = UDim2.fromOffset(0, 3),
         Size = UDim2.new(1, 0, 0, 2),
         Parent = TimerHolder,
     })
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 1),
+        Parent = TimerBar,
+    })
+
     TimerFill = New("Frame", {
-        BackgroundColor3 = "AccentColor",
+        BackgroundColor3 = Data.AccentColor,
+        BorderSizePixel = 0,
         Size = UDim2.fromScale(1, 1),
         Parent = TimerBar,
+    })
+
+    New("UICorner", {
+        CornerRadius = UDim.new(0, 1),
+        Parent = TimerFill,
     })
 
     if typeof(Data.Time) == "Instance" then
@@ -22843,9 +23117,9 @@ function Library:CreateWindow(WindowInfo)
             })
 
             --// Tab Container \\--
-            TabContainer = New("CanvasGroup", {
+            TabContainer = New("Frame", {
+                Name = "HOLYTabContainer",
                 BackgroundTransparency = 1,
-                GroupTransparency = 0,
                 Position = UDim2.fromOffset(0, 0),
                 Size = UDim2.fromScale(1, 1),
                 Visible = false,
@@ -24631,8 +24905,8 @@ function Library:CreateWindow(WindowInfo)
                     Position = UDim2.fromOffset(BoxIcon and 27 or 0, 0),
                     Size = UDim2.new(1, 0, 0, 29),
                     Text = Info.Name,
-                    TextSize = 14,
-                    TextTransparency = 0.03,
+                    TextSize = 15,
+                    TextTransparency = 0,
                     TextXAlignment = Enum.TextXAlignment.Left,
                     Parent = GroupboxHolder,
                 })
