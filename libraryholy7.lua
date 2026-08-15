@@ -21042,7 +21042,13 @@ function Library:CreateWindow(WindowInfo)
         )
 
         --// Footer
-        FooterLabel = New("TextLabel", {
+        FooterLabel = New("TextButton", {
+            AutoButtonColor =
+                false,
+
+            AutomaticSize =
+                Enum.AutomaticSize.X,
+
             BackgroundTransparency =
                 1,
 
@@ -21052,10 +21058,13 @@ function Library:CreateWindow(WindowInfo)
                     0
                 ),
 
+            Selectable =
+                false,
+
             Size =
                 UDim2.new(
-                    0.5,
-                    -12,
+                    0,
+                    0,
                     1,
                     0
                 ),
@@ -21075,6 +21084,57 @@ function Library:CreateWindow(WindowInfo)
             Parent =
                 BottomBar,
         })
+
+        if type(
+            WindowInfo.FooterCallback
+        ) == "function" then
+
+            FooterLabel.MouseButton1Click:Connect(function()
+
+                Library:SafeCallback(
+                    WindowInfo.FooterCallback
+                )
+            end)
+
+            FooterLabel.MouseEnter:Connect(function()
+
+                TweenService:Create(
+                    FooterLabel,
+                    Library.TweenInfo,
+                    {
+                        TextColor3 =
+                            Color3.fromRGB(
+                                88,
+                                101,
+                                242
+                            ),
+
+                        TextTransparency =
+                            0.05,
+                    }
+                ):Play()
+            end)
+
+            FooterLabel.MouseLeave:Connect(function()
+
+                TweenService:Create(
+                    FooterLabel,
+                    Library.TweenInfo,
+                    {
+                        TextColor3 =
+                            Library.Scheme.FontColor,
+
+                        TextTransparency =
+                            0.58,
+                    }
+                ):Play()
+            end)
+
+        else
+
+            FooterLabel.Active =
+                false
+        end
 
         local toggleKeyName =
             typeof(
