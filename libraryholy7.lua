@@ -267,12 +267,12 @@ local Library = {
     StrokeRegistry = {},
 
     SurfaceTransparencyMultipliers = {
-        Window = 1,
-        Chrome = 0.20,
-        Panel = 0.16,
-        Groupbox = 0.08,
-        Control = 0.05,
-        Overlay = 0.025,
+        Window = 0.18,
+        Chrome = 0.08,
+        Panel = 0.06,
+        Groupbox = 0.03,
+        Control = 0.02,
+        Overlay = 0.01,
     },
 
     IsLightTheme = false,
@@ -296,65 +296,65 @@ local Library = {
     Scheme = {
         BackgroundColor =
             Color3.fromRGB(
-                7,
-                8,
-                12
+                3,
+                4,
+                6
             ),
 
         MainColor =
             Color3.fromRGB(
-                17,
-                19,
-                25
+                10,
+                12,
+                16
             ),
 
         AccentColor =
             Color3.fromRGB(
-                232,
-                45,
-                67
+                238,
+                43,
+                68
             ),
 
         OutlineColor =
             Color3.fromRGB(
-                39,
-                43,
-                52
+                28,
+                31,
+                38
             ),
 
         OuterRimColor =
             Color3.fromRGB(
-                1,
-                2,
-                4
+                0,
+                0,
+                0
             ),
 
         InnerBorderColor =
             Color3.fromRGB(
-                45,
-                49,
-                59
+                34,
+                38,
+                46
             ),
 
         ControlBorderColor =
             Color3.fromRGB(
-                37,
-                41,
-                50
+                31,
+                35,
+                43
             ),
 
         SeparatorColor =
             Color3.fromRGB(
-                25,
-                28,
-                34
+                18,
+                20,
+                25
             ),
 
         FontColor =
             Color3.fromRGB(
-                244,
-                245,
-                248
+                248,
+                249,
+                251
             ),
 
         Font =
@@ -364,44 +364,44 @@ local Library = {
 
         SuccessColor =
             Color3.fromRGB(
-                105,
-                229,
-                160
+                96,
+                225,
+                151
             ),
 
         WarningColor =
             Color3.fromRGB(
                 245,
-                199,
-                100
+                194,
+                86
             ),
 
         MutedColor =
             Color3.fromRGB(
-                139,
-                146,
-                160
+                166,
+                171,
+                182
             ),
 
         RedColor =
             Color3.fromRGB(
                 255,
-                70,
-                88
+                63,
+                87
             ),
 
         DestructiveColor =
             Color3.fromRGB(
-                210,
-                38,
-                54
+                216,
+                35,
+                55
             ),
 
         DarkColor =
             Color3.fromRGB(
+                1,
                 2,
-                3,
-                5
+                3
             ),
 
         WhiteColor =
@@ -757,79 +757,107 @@ Library.Themes = {
     ["HOLY Red"] = {
         BackgroundColor =
             Color3.fromRGB(
-                7,
-                8,
-                12
+                3,
+                4,
+                6
             ),
 
         MainColor =
             Color3.fromRGB(
-                17,
-                19,
-                25
+                10,
+                12,
+                16
             ),
 
         AccentColor =
             Color3.fromRGB(
-                232,
-                45,
-                67
+                238,
+                43,
+                68
             ),
 
         OutlineColor =
             Color3.fromRGB(
-                39,
-                43,
-                52
+                28,
+                31,
+                38
+            ),
+
+        OuterRimColor =
+            Color3.fromRGB(
+                0,
+                0,
+                0
+            ),
+
+        InnerBorderColor =
+            Color3.fromRGB(
+                34,
+                38,
+                46
+            ),
+
+        ControlBorderColor =
+            Color3.fromRGB(
+                31,
+                35,
+                43
+            ),
+
+        SeparatorColor =
+            Color3.fromRGB(
+                18,
+                20,
+                25
             ),
 
         FontColor =
             Color3.fromRGB(
-                244,
-                245,
-                248
+                248,
+                249,
+                251
             ),
 
         SuccessColor =
             Color3.fromRGB(
-                105,
-                229,
-                160
+                96,
+                225,
+                151
             ),
 
         WarningColor =
             Color3.fromRGB(
                 245,
-                199,
-                100
+                194,
+                86
             ),
 
         MutedColor =
             Color3.fromRGB(
-                139,
-                146,
-                160
+                166,
+                171,
+                182
             ),
 
         RedColor =
             Color3.fromRGB(
                 255,
-                70,
-                88
+                63,
+                87
             ),
 
         DestructiveColor =
             Color3.fromRGB(
-                210,
-                38,
-                54
+                216,
+                35,
+                55
             ),
 
         DarkColor =
             Color3.fromRGB(
+                1,
                 2,
-                3,
-                5
+                3
             ),
 
         WhiteColor =
@@ -3567,10 +3595,10 @@ function Library:AddOutline(Frame: GuiObject)
                     Enum.LineJoinMode.Round,
 
                 Thickness =
-                    2,
+                    1,
 
                 Transparency =
-                    0,
+                    1,
 
                 ZIndex =
                     1,
@@ -3597,7 +3625,7 @@ function Library:AddOutline(Frame: GuiObject)
                     1,
 
                 Transparency =
-                    0.03,
+                    0.12,
 
                 ZIndex =
                     2,
@@ -15713,7 +15741,7 @@ do
             Size = UDim2.new(1, -26, 1, 0),
             Text = Toggle.Text,
             TextSize = 14,
-            TextTransparency = 0.4,
+            TextTransparency = 0.10,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Button,
         })
@@ -15777,7 +15805,7 @@ do
             end
 
             TweenService:Create(Label, Library.TweenInfo, {
-                TextTransparency = Toggle.Value and 0 or 0.4,
+                TextTransparency = Toggle.Value and 0 or 0.10,
             }):Play()
             TweenService:Create(CheckImage, Library.TweenInfo, {
                 ImageTransparency = Toggle.Value and 0 or 1,
@@ -15919,7 +15947,7 @@ do
             Size = UDim2.new(1, -40, 1, 0),
             Text = Toggle.Text,
             TextSize = 14,
-            TextTransparency = 0.4,
+            TextTransparency = 0.10,
             TextXAlignment = Enum.TextXAlignment.Left,
             Parent = Button,
         })
@@ -16005,7 +16033,7 @@ do
             end
 
             TweenService:Create(Label, Library.TweenInfo, {
-                TextTransparency = Toggle.Value and 0 or 0.4,
+                TextTransparency = Toggle.Value and 0 or 0.10,
             }):Play()
             TweenService:Create(Ball, Library.TweenInfo, {
                 AnchorPoint = Vector2.new(Offset, 0),
@@ -20386,7 +20414,7 @@ function Library:CreateWindow(WindowInfo)
                         "BackgroundColor",
 
                     BackgroundTransparency =
-                        0.02,
+                        0,
 
                     BorderSizePixel =
                         0,
@@ -20407,7 +20435,7 @@ function Library:CreateWindow(WindowInfo)
         Library:RegisterSurface(
             TopBar,
             "Chrome",
-            0.02
+            0
         )
         Library:MakeDraggable(MainFrame, TopBar, false, true)
 
@@ -21005,10 +21033,10 @@ function Library:CreateWindow(WindowInfo)
 
         SidebarSurface = New("Frame", {
             BackgroundColor3 =
-                "MainColor",
+                "BackgroundColor",
 
             BackgroundTransparency =
-                0.58,
+                0,
 
             BorderSizePixel =
                 0,
@@ -21034,7 +21062,7 @@ function Library:CreateWindow(WindowInfo)
         Library:RegisterSurface(
             SidebarSurface,
             "Chrome",
-            0.58
+            0
         )
 
         Tabs = New("ScrollingFrame", {
@@ -22604,8 +22632,9 @@ function Library:CreateWindow(WindowInfo)
                 Position = UDim2.fromOffset(30, 0),
                 Size = UDim2.new(1, -30, 1, 0),
                 Text = Name,
+                TextColor3 = "MutedColor",
                 TextSize = 16,
-                TextTransparency = 0.38,
+                TextTransparency = 0.04,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 Visible = not IsCompact,
                 Parent = TabButton,
@@ -22614,10 +22643,10 @@ function Library:CreateWindow(WindowInfo)
             if Icon then
                 TabIcon = New("ImageLabel", {
                     Image = Icon.Url,
-                    ImageColor3 = Icon.Custom and "WhiteColor" or "AccentColor",
+                    ImageColor3 = Icon.Custom and "WhiteColor" or "MutedColor",
                     ImageRectOffset = Icon.ImageRectOffset,
                     ImageRectSize = Icon.ImageRectSize,
-                    ImageTransparency = 0.38,
+                    ImageTransparency = Icon.Custom and 0.24 or 0.04,
                     ScaleType = Enum.ScaleType.Fit,
                     Size = UDim2.fromScale(1, 1),
                     SizeConstraint = IsCompact and Enum.SizeConstraint.RelativeXY or Enum.SizeConstraint.RelativeYY,
@@ -24346,7 +24375,7 @@ function Library:CreateWindow(WindowInfo)
                                 "MainColor",
 
                             BackgroundTransparency =
-                                0.02,
+                                0,
 
                             ClipsDescendants =
                                 Info.Collapsible == true,
@@ -24385,7 +24414,7 @@ function Library:CreateWindow(WindowInfo)
                 Library:RegisterSurface(
                     GroupboxHolder,
                     "Groupbox",
-                    0.02
+                    0
                 )
 
                 Library:AddOutline(
@@ -24978,16 +25007,28 @@ end
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = Hovering and 0.62 or 1,
+                BackgroundTransparency = Hovering and 0.68 or 1,
             }):Play()
 
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = Hovering and 0.14 or 0.38,
+                TextColor3 = Hovering
+                    and Library.Scheme.FontColor
+                    or Library.Scheme.MutedColor,
+
+                TextTransparency = Hovering and 0 or 0.04,
             }):Play()
 
             if TabIcon then
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = Hovering and 0.14 or 0.38,
+                    ImageColor3 = Icon.Custom
+                        and Library.Scheme.WhiteColor
+                        or Hovering
+                        and Library.Scheme.FontColor
+                        or Library.Scheme.MutedColor,
+
+                    ImageTransparency = Icon.Custom
+                        and (Hovering and 0.08 or 0.24)
+                        or 0.04,
                 }):Play()
             end
         end
@@ -24998,7 +25039,7 @@ end
             end
 
             TweenService:Create(TabButton, Library.TweenInfo, {
-                BackgroundTransparency = 0.08,
+                BackgroundTransparency = 0.12,
             }):Play()
 
             TweenService:Create(TabActiveBar, Library.TweenInfo, {
@@ -25010,12 +25051,27 @@ end
                 Enum.FontWeight.SemiBold
             )
 
+            Library.Registry[TabLabel].TextColor3 =
+                "FontColor"
+
             TweenService:Create(TabLabel, Library.TweenInfo, {
+                TextColor3 = Library.Scheme.FontColor,
                 TextTransparency = 0,
             }):Play()
 
             if TabIcon then
+                local ActiveIconColor =
+                    Icon.Custom
+                    and Library.Scheme.WhiteColor
+                    or Library.Scheme.AccentColor
+
+                Library.Registry[TabIcon].ImageColor3 =
+                    Icon.Custom
+                    and "WhiteColor"
+                    or "AccentColor"
+
                 TweenService:Create(TabIcon, Library.TweenInfo, {
+                    ImageColor3 = ActiveIconColor,
                     ImageTransparency = 0,
                 }):Play()
             end
@@ -25048,15 +25104,31 @@ end
                 Enum.FontWeight.Medium
             )
 
+            Library.Registry[TabLabel].TextColor3 =
+                "MutedColor"
+
             TweenService:Create(TabLabel, Library.TweenInfo, {
-                TextTransparency = 0.38,
+                TextColor3 = Library.Scheme.MutedColor,
+                TextTransparency = 0.04,
             }):Play()
 
             if TabIcon then
+                local InactiveIconColor =
+                    Icon.Custom
+                    and Library.Scheme.WhiteColor
+                    or Library.Scheme.MutedColor
+
+                Library.Registry[TabIcon].ImageColor3 =
+                    Icon.Custom
+                    and "WhiteColor"
+                    or "MutedColor"
+
                 TweenService:Create(TabIcon, Library.TweenInfo, {
-                    ImageTransparency = 0.38,
+                    ImageColor3 = InactiveIconColor,
+                    ImageTransparency = Icon.Custom and 0.24 or 0.04,
                 }):Play()
             end
+
             TabContainer.Visible = false
 
             Window:HideTabInfo()
