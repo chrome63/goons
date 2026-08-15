@@ -20170,6 +20170,10 @@ end
 
 function Library:CreateWindow(WindowInfo)
     WindowInfo = Library:Validate(WindowInfo, Templates.Window)
+
+    WindowInfo.Title =
+        "HOLY"
+
     local ViewportSize: Vector2 = workspace.CurrentCamera.ViewportSize
     if RunService:IsStudio() and ViewportSize.X <= 5 and ViewportSize.Y <= 5 then
         repeat
@@ -20437,7 +20441,30 @@ function Library:CreateWindow(WindowInfo)
             "Chrome",
             0
         )
-        Library:MakeDraggable(MainFrame, TopBar, false, true)
+
+        table.insert(
+            Library.Corners,
+            New(
+                "UICorner",
+                {
+                    CornerRadius =
+                        UDim.new(
+                            0,
+                            WindowInfo.CornerRadius
+                        ),
+
+                    Parent =
+                        TopBar,
+                }
+            )
+        )
+
+        Library:MakeDraggable(
+            MainFrame,
+            TopBar,
+            false,
+            true
+        )
 
         --// Title
         TitleHolder = New("Frame", {
@@ -20464,7 +20491,7 @@ function Library:CreateWindow(WindowInfo)
                 Enum.FillDirection.Horizontal,
 
             HorizontalAlignment =
-                Enum.HorizontalAlignment.Left,
+                Enum.HorizontalAlignment.Center,
 
             VerticalAlignment =
                 Enum.VerticalAlignment.Center,
@@ -20473,23 +20500,6 @@ function Library:CreateWindow(WindowInfo)
                 UDim.new(
                     0,
                     6
-                ),
-
-            Parent =
-                TitleHolder,
-        })
-
-        New("UIPadding", {
-            PaddingLeft =
-                UDim.new(
-                    0,
-                    16
-                ),
-
-            PaddingRight =
-                UDim.new(
-                    0,
-                    12
                 ),
 
             Parent =
@@ -20516,19 +20526,98 @@ function Library:CreateWindow(WindowInfo)
             })
         end
 
-        local X = Library:GetTextBounds(
-            WindowInfo.Title,
-            Library.Scheme.Font,
-            20,
-            TitleHolder.AbsoluteSize.X - (WindowInfo.Icon and WindowInfo.IconSize.X.Offset + 6 or 0) - 12
+        local WordmarkFont =
+            Font.fromEnum(
+                Enum.Font.GothamBlack
+            )
+
+        local X =
+            Library:GetTextBounds(
+                "HOLY",
+                WordmarkFont,
+                22,
+                TitleHolder.AbsoluteSize.X
+            )
+
+        WindowTitle =
+            New(
+                "TextLabel",
+                {
+                    BackgroundTransparency =
+                        1,
+
+                    FontFace =
+                        WordmarkFont,
+
+                    Size =
+                        UDim2.new(
+                            0,
+                            math.max(
+                                82,
+                                math.ceil(X + 6)
+                            ),
+                            1,
+                            0
+                        ),
+
+                    Text =
+                        "HOLY",
+
+                    TextColor3 =
+                        "WhiteColor",
+
+                    TextSize =
+                        22,
+
+                    TextStrokeColor3 =
+                        Color3.fromRGB(
+                            0,
+                            0,
+                            0
+                        ),
+
+                    TextStrokeTransparency =
+                        0.82,
+
+                    TextXAlignment =
+                        Enum.TextXAlignment.Center,
+
+                    Parent =
+                        TitleHolder,
+                }
+            )
+
+        New(
+            "UIGradient",
+            {
+                Color =
+                    function()
+
+                        return ColorSequence.new({
+                            ColorSequenceKeypoint.new(
+                                0,
+                                Library.Scheme.WhiteColor
+                            ),
+
+                            ColorSequenceKeypoint.new(
+                                0.52,
+                                Library.Scheme.WhiteColor
+                            ),
+
+                            ColorSequenceKeypoint.new(
+                                1,
+                                Library.Scheme.AccentColor
+                            ),
+                        })
+                    end,
+
+                Rotation =
+                    0,
+
+                Parent =
+                    WindowTitle,
+            }
         )
-        WindowTitle = New("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0, X, 1, 0),
-            Text = WindowInfo.Title,
-            TextSize = 20,
-            Parent = TitleHolder,
-        })
 
         --// Top Right Bar
         RightWrapper = New("Frame", {
