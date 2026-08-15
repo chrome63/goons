@@ -317,9 +317,16 @@ local Library = {
 
         OutlineColor =
             Color3.fromRGB(
-                28,
-                31,
-                38
+                41,
+                47,
+                57
+            ),
+
+        WindowBorderColor =
+            Color3.fromRGB(
+                62,
+                68,
+                80
             ),
 
         OuterRimColor =
@@ -331,23 +338,23 @@ local Library = {
 
         InnerBorderColor =
             Color3.fromRGB(
-                34,
-                38,
-                46
+                48,
+                54,
+                65
             ),
 
         ControlBorderColor =
             Color3.fromRGB(
-                31,
-                35,
-                43
+                41,
+                47,
+                57
             ),
 
         SeparatorColor =
             Color3.fromRGB(
-                18,
-                20,
-                25
+                35,
+                40,
+                48
             ),
 
         FontColor =
@@ -778,9 +785,16 @@ Library.Themes = {
 
         OutlineColor =
             Color3.fromRGB(
-                28,
-                31,
-                38
+                41,
+                47,
+                57
+            ),
+
+        WindowBorderColor =
+            Color3.fromRGB(
+                62,
+                68,
+                80
             ),
 
         OuterRimColor =
@@ -792,23 +806,23 @@ Library.Themes = {
 
         InnerBorderColor =
             Color3.fromRGB(
-                34,
-                38,
-                46
+                48,
+                54,
+                65
             ),
 
         ControlBorderColor =
             Color3.fromRGB(
-                31,
-                35,
-                43
+                41,
+                47,
+                57
             ),
 
         SeparatorColor =
             Color3.fromRGB(
-                18,
-                20,
-                25
+                35,
+                40,
+                48
             ),
 
         FontColor =
@@ -3561,6 +3575,9 @@ function Library:MakeLine(Frame: GuiObject, Info)
                 BackgroundColor3 =
                     "SeparatorColor",
 
+                BackgroundTransparency =
+                    0.02,
+
                 Position =
                     Info.Position,
 
@@ -3579,7 +3596,14 @@ function Library:MakeLine(Frame: GuiObject, Info)
     return Line
 end
 
-function Library:AddOutline(Frame: GuiObject)
+function Library:AddOutline(
+    Frame: GuiObject,
+    BorderRole
+)
+
+    local IsWindow =
+        BorderRole
+        == "Window"
 
     local OuterRim =
         New(
@@ -3616,7 +3640,9 @@ function Library:AddOutline(Frame: GuiObject)
                     Enum.ApplyStrokeMode.Border,
 
                 Color =
-                    "InnerBorderColor",
+                    IsWindow
+                    and "WindowBorderColor"
+                    or "InnerBorderColor",
 
                 LineJoinMode =
                     Enum.LineJoinMode.Round,
@@ -3625,7 +3651,7 @@ function Library:AddOutline(Frame: GuiObject)
                     1,
 
                 Transparency =
-                    0.12,
+                    0.04,
 
                 ZIndex =
                     2,
@@ -20347,7 +20373,11 @@ function Library:CreateWindow(WindowInfo)
                 Parent = MainFrame,
             })
         )
-        Library:AddOutline(MainFrame)
+        Library:AddOutline(
+            MainFrame,
+            "Window"
+        )
+
         Library:MakeLine(MainFrame, {
             Position = UDim2.fromOffset(0, 44),
             Size = UDim2.new(1, 0, 0, 1),
@@ -20355,10 +20385,10 @@ function Library:CreateWindow(WindowInfo)
 
         DividerLine = New("Frame", {
             BackgroundColor3 =
-                "OutlineColor",
+                "SeparatorColor",
 
             BackgroundTransparency =
-                0.18,
+                0.02,
 
             BorderSizePixel =
                 0,
@@ -20762,10 +20792,10 @@ function Library:CreateWindow(WindowInfo)
 
         New("UIStroke", {
             Color =
-                "OutlineColor",
+                "ControlBorderColor",
 
             Transparency =
-                0.22,
+                0.02,
 
             Thickness =
                 1,
@@ -20856,10 +20886,10 @@ function Library:CreateWindow(WindowInfo)
             "UIStroke",
             {
                 Color =
-                    "OutlineColor",
+                    "ControlBorderColor",
 
                 Transparency =
-                    0.35,
+                    0.02,
 
                 Thickness =
                     1,
@@ -21292,13 +21322,16 @@ function Library:CreateWindow(WindowInfo)
 
         New("UIStroke", {
             Color =
-                "OutlineColor",
+                "InnerBorderColor",
 
             LineJoinMode =
                 Enum.LineJoinMode.Round,
 
+            Thickness =
+                1,
+
             Transparency =
-                0.15,
+                0.04,
 
             Parent =
                 ProfileCard,
