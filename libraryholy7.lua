@@ -294,27 +294,122 @@ local Library = {
     TabSwipeFrom = "bottom",
 
     Scheme = {
-        BackgroundColor = Color3.fromRGB(3, 3, 5),
-        MainColor = Color3.fromRGB(12, 13, 16),
-        AccentColor = Color3.fromRGB(232, 45, 67),
-        OutlineColor = Color3.fromRGB(30, 31, 35),
+        BackgroundColor =
+            Color3.fromRGB(
+                7,
+                8,
+                12
+            ),
 
-        OuterRimColor = Color3.fromRGB(0, 0, 0),
-        InnerBorderColor = Color3.fromRGB(36, 37, 41),
-        ControlBorderColor = Color3.fromRGB(30, 31, 35),
-        SeparatorColor = Color3.fromRGB(21, 22, 25),
+        MainColor =
+            Color3.fromRGB(
+                17,
+                19,
+                25
+            ),
 
-        FontColor = Color3.fromRGB(245, 245, 247),
-        Font = Font.fromEnum(Enum.Font.GothamMedium),
+        AccentColor =
+            Color3.fromRGB(
+                232,
+                45,
+                67
+            ),
 
-        SuccessColor = Color3.fromRGB(105, 229, 160),
-        WarningColor = Color3.fromRGB(245, 199, 100),
-        MutedColor = Color3.fromRGB(145, 151, 164),
+        OutlineColor =
+            Color3.fromRGB(
+                39,
+                43,
+                52
+            ),
 
-        RedColor = Color3.fromRGB(255, 70, 88),
-        DestructiveColor = Color3.fromRGB(210, 38, 54),
-        DarkColor = Color3.fromRGB(0, 0, 0),
-        WhiteColor = Color3.fromRGB(255, 255, 255),
+        OuterRimColor =
+            Color3.fromRGB(
+                1,
+                2,
+                4
+            ),
+
+        InnerBorderColor =
+            Color3.fromRGB(
+                45,
+                49,
+                59
+            ),
+
+        ControlBorderColor =
+            Color3.fromRGB(
+                37,
+                41,
+                50
+            ),
+
+        SeparatorColor =
+            Color3.fromRGB(
+                25,
+                28,
+                34
+            ),
+
+        FontColor =
+            Color3.fromRGB(
+                244,
+                245,
+                248
+            ),
+
+        Font =
+            Font.fromEnum(
+                Enum.Font.GothamMedium
+            ),
+
+        SuccessColor =
+            Color3.fromRGB(
+                105,
+                229,
+                160
+            ),
+
+        WarningColor =
+            Color3.fromRGB(
+                245,
+                199,
+                100
+            ),
+
+        MutedColor =
+            Color3.fromRGB(
+                139,
+                146,
+                160
+            ),
+
+        RedColor =
+            Color3.fromRGB(
+                255,
+                70,
+                88
+            ),
+
+        DestructiveColor =
+            Color3.fromRGB(
+                210,
+                38,
+                54
+            ),
+
+        DarkColor =
+            Color3.fromRGB(
+                2,
+                3,
+                5
+            ),
+
+        WhiteColor =
+            Color3.fromRGB(
+                255,
+                255,
+                255
+            ),
     },
 
     Registry = {},
@@ -660,22 +755,92 @@ Library.ThemeOrder = {
 
 Library.Themes = {
     ["HOLY Red"] = {
-        BackgroundColor = Color3.fromRGB(3, 3, 5),
-        MainColor = Color3.fromRGB(12, 13, 16),
-        AccentColor = Color3.fromRGB(232, 45, 67),
-        OutlineColor = Color3.fromRGB(30, 31, 35),
-        FontColor = Color3.fromRGB(245, 245, 247),
+        BackgroundColor =
+            Color3.fromRGB(
+                7,
+                8,
+                12
+            ),
 
-        SuccessColor = Color3.fromRGB(105, 229, 160),
-        WarningColor = Color3.fromRGB(245, 199, 100),
-        MutedColor = Color3.fromRGB(145, 151, 164),
+        MainColor =
+            Color3.fromRGB(
+                17,
+                19,
+                25
+            ),
 
-        RedColor = Color3.fromRGB(255, 70, 88),
-        DestructiveColor = Color3.fromRGB(210, 38, 54),
-        DarkColor = Color3.fromRGB(0, 0, 0),
-        WhiteColor = Color3.fromRGB(255, 255, 255),
+        AccentColor =
+            Color3.fromRGB(
+                232,
+                45,
+                67
+            ),
 
-        IsLight = false,
+        OutlineColor =
+            Color3.fromRGB(
+                39,
+                43,
+                52
+            ),
+
+        FontColor =
+            Color3.fromRGB(
+                244,
+                245,
+                248
+            ),
+
+        SuccessColor =
+            Color3.fromRGB(
+                105,
+                229,
+                160
+            ),
+
+        WarningColor =
+            Color3.fromRGB(
+                245,
+                199,
+                100
+            ),
+
+        MutedColor =
+            Color3.fromRGB(
+                139,
+                146,
+                160
+            ),
+
+        RedColor =
+            Color3.fromRGB(
+                255,
+                70,
+                88
+            ),
+
+        DestructiveColor =
+            Color3.fromRGB(
+                210,
+                38,
+                54
+            ),
+
+        DarkColor =
+            Color3.fromRGB(
+                2,
+                3,
+                5
+            ),
+
+        WhiteColor =
+            Color3.fromRGB(
+                255,
+                255,
+                255
+            ),
+
+        IsLight =
+            false,
     },
 
     Midnight = {
@@ -1945,8 +2110,15 @@ end
 
 local ScreenGui = New("ScreenGui", {
     Name = "HolyLibrary",
-    DisplayOrder = 998,
-    ResetOnSpawn = false,
+
+    DisplayOrder =
+        1000000,
+
+    ResetOnSpawn =
+        false,
+
+    ZIndexBehavior =
+        Enum.ZIndexBehavior.Sibling,
 })
 ParentUI(ScreenGui)
 Library.ScreenGui = ScreenGui
@@ -19992,11 +20164,15 @@ function Library:CreateWindow(WindowInfo)
     if typeof(WindowInfo.Font) == "EnumItem" then
         WindowInfo.Font = Font.fromEnum(WindowInfo.Font)
     end
-    WindowInfo.CornerRadius = math.clamp(
-        tonumber(WindowInfo.CornerRadius) or 14,
-        14,
-        20
-    )
+    WindowInfo.CornerRadius =
+        math.clamp(
+            tonumber(
+                WindowInfo.CornerRadius
+            )
+            or 12,
+            12,
+            14
+        )
     
     --// Old Naming \\--
     if WindowInfo.Compact ~= nil then
@@ -20146,10 +20322,31 @@ function Library:CreateWindow(WindowInfo)
         })
 
         DividerLine = New("Frame", {
-            BackgroundColor3 = "OutlineColor",
-            Position = UDim2.fromOffset(InitialLeftWidth, 0),
-            Size = UDim2.new(0, 1, 1, -21),
-            Parent = MainFrame,
+            BackgroundColor3 =
+                "OutlineColor",
+
+            BackgroundTransparency =
+                0.18,
+
+            BorderSizePixel =
+                0,
+
+            Position =
+                UDim2.fromOffset(
+                    InitialLeftWidth,
+                    45
+                ),
+
+            Size =
+                UDim2.new(
+                    0,
+                    1,
+                    1,
+                    -66
+                ),
+
+            Parent =
+                MainFrame,
         })
 
         if WindowInfo.BackgroundImage then
@@ -20182,11 +20379,17 @@ function Library:CreateWindow(WindowInfo)
             New(
                 "Frame",
                 {
+                    Name =
+                        "WindowHeader",
+
                     BackgroundColor3 =
                         "BackgroundColor",
 
                     BackgroundTransparency =
-                        0.08,
+                        0.02,
+
+                    BorderSizePixel =
+                        0,
 
                     Size =
                         UDim2.new(
@@ -20204,22 +20407,65 @@ function Library:CreateWindow(WindowInfo)
         Library:RegisterSurface(
             TopBar,
             "Chrome",
-            0.08
+            0.02
         )
         Library:MakeDraggable(MainFrame, TopBar, false, true)
 
         --// Title
         TitleHolder = New("Frame", {
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0, InitialLeftWidth, 1, 0),
-            Parent = TopBar,
+            Name =
+                "BrandArea",
+
+            BackgroundTransparency =
+                1,
+
+            Size =
+                UDim2.new(
+                    0,
+                    InitialLeftWidth,
+                    1,
+                    0
+                ),
+
+            Parent =
+                TopBar,
         })
+
         New("UIListLayout", {
-            FillDirection = Enum.FillDirection.Horizontal,
-            HorizontalAlignment = Enum.HorizontalAlignment.Center,
-            VerticalAlignment = Enum.VerticalAlignment.Center,
-            Padding = UDim.new(0, 6),
-            Parent = TitleHolder,
+            FillDirection =
+                Enum.FillDirection.Horizontal,
+
+            HorizontalAlignment =
+                Enum.HorizontalAlignment.Left,
+
+            VerticalAlignment =
+                Enum.VerticalAlignment.Center,
+
+            Padding =
+                UDim.new(
+                    0,
+                    6
+                ),
+
+            Parent =
+                TitleHolder,
+        })
+
+        New("UIPadding", {
+            PaddingLeft =
+                UDim.new(
+                    0,
+                    16
+                ),
+
+            PaddingRight =
+                UDim.new(
+                    0,
+                    12
+                ),
+
+            Parent =
+                TitleHolder,
         })
 
         if WindowInfo.Icon then
@@ -20323,35 +20569,92 @@ function Library:CreateWindow(WindowInfo)
         })
 
         SearchBox = New("TextBox", {
-            BackgroundColor3 = "MainColor",
-            PlaceholderText = "Search",
-            Size = WindowInfo.SearchbarSize,
-            TextScaled = false,
-            TextSize = 14,
-            Visible = not (WindowInfo.DisableSearch or false),
-            Parent = RightWrapper,
+            BackgroundColor3 =
+                "MainColor",
+
+            BackgroundTransparency =
+                0.12,
+
+            ClearTextOnFocus =
+                false,
+
+            PlaceholderColor3 =
+                "MutedColor",
+
+            PlaceholderText =
+                "Search anything...",
+
+            Size =
+                WindowInfo.SearchbarSize,
+
+            TextScaled =
+                false,
+
+            TextSize =
+                13,
+
+            Visible =
+                not (
+                    WindowInfo.DisableSearch
+                    or false
+                ),
+
+            Parent =
+                RightWrapper,
         })
+
         New("UIFlexItem", {
-            FlexMode = Enum.UIFlexMode.Shrink,
-            Parent = SearchBox,
+            FlexMode =
+                Enum.UIFlexMode.Shrink,
+
+            Parent =
+                SearchBox,
         })
+
         table.insert(
             Library.Corners,
             New("UICorner", {
-                CornerRadius = UDim.new(0, WindowInfo.CornerRadius),
-                Parent = SearchBox,
+                CornerRadius =
+                    UDim.new(
+                        0,
+                        WindowInfo.CornerRadius
+                            / 2
+                    ),
+
+                Parent =
+                    SearchBox,
             })
         )
+
         New("UIPadding", {
-            PaddingBottom = UDim.new(0, 8),
-            PaddingLeft = UDim.new(0, 8),
-            PaddingRight = UDim.new(0, 8),
-            PaddingTop = UDim.new(0, 8),
-            Parent = SearchBox,
+            PaddingBottom =
+                UDim.new(0, 7),
+
+            PaddingLeft =
+                UDim.new(0, 8),
+
+            PaddingRight =
+                UDim.new(0, 8),
+
+            PaddingTop =
+                UDim.new(0, 7),
+
+            Parent =
+                SearchBox,
         })
+
         New("UIStroke", {
-            Color = "OutlineColor",
-            Parent = SearchBox,
+            Color =
+                "OutlineColor",
+
+            Transparency =
+                0.22,
+
+            Thickness =
+                1,
+
+            Parent =
+                SearchBox,
         })
 
         local SearchIcon = Library:GetIcon("search")
@@ -20368,19 +20671,190 @@ function Library:CreateWindow(WindowInfo)
             })
         end
 
-        if MoveIcon then
-            New("ImageLabel", {
-                AnchorPoint = Vector2.new(1, 0.5),
-                Image = MoveIcon.Url,
-                ImageColor3 = "OutlineColor",
-                ImageRectOffset = MoveIcon.ImageRectOffset,
-                ImageRectSize = MoveIcon.ImageRectSize,
-                Position = UDim2.new(1, -10, 0.5, 0),
-                Size = UDim2.fromOffset(28, 28),
-                SizeConstraint = Enum.SizeConstraint.RelativeYY,
-                Parent = TopBar,
-            })
-        end
+        local CloseIcon =
+            Library:GetIcon(
+                "x"
+            )
+
+        local HideButton =
+            New(
+                "TextButton",
+                {
+                    AnchorPoint =
+                        Vector2.new(
+                            1,
+                            0.5
+                        ),
+
+                    AutoButtonColor =
+                        false,
+
+                    BackgroundColor3 =
+                        "MainColor",
+
+                    BackgroundTransparency =
+                        0.35,
+
+                    Position =
+                        UDim2.new(
+                            1,
+                            -10,
+                            0.5,
+                            0
+                        ),
+
+                    Size =
+                        UDim2.fromOffset(
+                            28,
+                            28
+                        ),
+
+                    Text =
+                        "",
+
+                    Parent =
+                        TopBar,
+                }
+            )
+
+        table.insert(
+            Library.Corners,
+            New(
+                "UICorner",
+                {
+                    CornerRadius =
+                        UDim.new(
+                            0,
+                            WindowInfo.CornerRadius
+                                / 2
+                        ),
+
+                    Parent =
+                        HideButton,
+                }
+            )
+        )
+
+        New(
+            "UIStroke",
+            {
+                Color =
+                    "OutlineColor",
+
+                Transparency =
+                    0.35,
+
+                Thickness =
+                    1,
+
+                Parent =
+                    HideButton,
+            }
+        )
+
+        local HideImage =
+            New(
+                "ImageLabel",
+                {
+                    AnchorPoint =
+                        Vector2.new(
+                            0.5,
+                            0.5
+                        ),
+
+                    BackgroundTransparency =
+                        1,
+
+                    Image =
+                        CloseIcon
+                        and CloseIcon.Url
+                        or "",
+
+                    ImageColor3 =
+                        "FontColor",
+
+                    ImageRectOffset =
+                        CloseIcon
+                        and CloseIcon.ImageRectOffset
+                        or Vector2.zero,
+
+                    ImageRectSize =
+                        CloseIcon
+                        and CloseIcon.ImageRectSize
+                        or Vector2.zero,
+
+                    ImageTransparency =
+                        0.35,
+
+                    Position =
+                        UDim2.fromScale(
+                            0.5,
+                            0.5
+                        ),
+
+                    Size =
+                        UDim2.fromOffset(
+                            14,
+                            14
+                        ),
+
+                    Parent =
+                        HideButton,
+                }
+            )
+
+        HideButton.MouseEnter:Connect(function()
+
+            TweenService:Create(
+                HideButton,
+                Library.TweenInfo,
+                {
+                    BackgroundTransparency =
+                        0.08,
+                }
+            ):Play()
+
+            TweenService:Create(
+                HideImage,
+                Library.TweenInfo,
+                {
+                    ImageTransparency =
+                        0.05,
+                }
+            ):Play()
+        end)
+
+        HideButton.MouseLeave:Connect(function()
+
+            TweenService:Create(
+                HideButton,
+                Library.TweenInfo,
+                {
+                    BackgroundTransparency =
+                        0.35,
+                }
+            ):Play()
+
+            TweenService:Create(
+                HideImage,
+                Library.TweenInfo,
+                {
+                    ImageTransparency =
+                        0.35,
+                }
+            ):Play()
+        end)
+
+        HideButton.MouseButton1Click:Connect(function()
+
+            if type(Library.Toggle)
+                == "function" then
+
+                Library:Toggle(
+                    false
+                )
+            end
+        end)
 
         --// Bottom Bar \\--
         BottomBackground = New("Frame", {
@@ -20422,12 +20896,79 @@ function Library:CreateWindow(WindowInfo)
 
         --// Footer
         FooterLabel = New("TextLabel", {
-            BackgroundTransparency = 1,
-            Size = UDim2.fromScale(1, 1),
-            Text = WindowInfo.Footer,
-            TextSize = 14,
-            TextTransparency = 0.5,
-            Parent = BottomBar,
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromOffset(
+                    12,
+                    0
+                ),
+
+            Size =
+                UDim2.new(
+                    0.5,
+                    -12,
+                    1,
+                    0
+                ),
+
+            Text =
+                WindowInfo.Footer,
+
+            TextSize =
+                11,
+
+            TextTransparency =
+                0.58,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Left,
+
+            Parent =
+                BottomBar,
+        })
+
+        local toggleKeyName =
+            typeof(
+                WindowInfo.ToggleKeybind
+            ) == "EnumItem"
+            and WindowInfo.ToggleKeybind.Name
+            or "Toggle key"
+
+        New("TextLabel", {
+            BackgroundTransparency =
+                1,
+
+            Position =
+                UDim2.fromScale(
+                    0.5,
+                    0
+                ),
+
+            Size =
+                UDim2.new(
+                    0.5,
+                    -30,
+                    1,
+                    0
+                ),
+
+            Text =
+                toggleKeyName
+                .. " to hide",
+
+            TextSize =
+                11,
+
+            TextTransparency =
+                0.58,
+
+            TextXAlignment =
+                Enum.TextXAlignment.Right,
+
+            Parent =
+                BottomBar,
         })
 
         --// Resize Button
@@ -20464,7 +21005,13 @@ function Library:CreateWindow(WindowInfo)
 
         SidebarSurface = New("Frame", {
             BackgroundColor3 =
-                "BackgroundColor",
+                "MainColor",
+
+            BackgroundTransparency =
+                0.58,
+
+            BorderSizePixel =
+                0,
 
             Position =
                 UDim2.fromOffset(
@@ -20487,7 +21034,7 @@ function Library:CreateWindow(WindowInfo)
         Library:RegisterSurface(
             SidebarSurface,
             "Chrome",
-            0
+            0.58
         )
 
         Tabs = New("ScrollingFrame", {
@@ -20509,8 +21056,17 @@ function Library:CreateWindow(WindowInfo)
                     45
                 ),
 
+            ScrollBarImageColor3 =
+                "OutlineColor",
+
+            ScrollBarImageTransparency =
+                0.72,
+
             ScrollBarThickness =
-                0,
+                2,
+
+            ScrollingDirection =
+                Enum.ScrollingDirection.Y,
 
             Size =
                 UDim2.new(
@@ -20525,7 +21081,17 @@ function Library:CreateWindow(WindowInfo)
         })
 
         New("UIListLayout", {
-            Parent = Tabs,
+            Padding =
+                UDim.new(
+                    0,
+                    2
+                ),
+
+            SortOrder =
+                Enum.SortOrder.LayoutOrder,
+
+            Parent =
+                Tabs,
         })
 
         New("UIPadding", {
@@ -21707,8 +22273,18 @@ function Library:CreateWindow(WindowInfo)
     end
 
     function Window:SetCornerRadius(Radius: number)
-        assert(typeof(Radius) == "number", "Expected number for Radius got: " .. typeof(Radius))
-        Radius = math.clamp(Radius, 14, 20)
+        assert(
+            typeof(Radius) == "number",
+            "Expected number for Radius got: "
+                .. typeof(Radius)
+        )
+
+        Radius =
+            math.clamp(
+                Radius,
+                12,
+                14
+            )
 
         for _, UICorner in Library.Corners do
             if UICorner.CornerRadius.Offset == Library.CornerRadius / 2 then
@@ -21871,7 +22447,10 @@ function Library:CreateWindow(WindowInfo)
         )
 
         DividerLine.Position =
-            UDim2.fromOffset(Width, 0)
+            UDim2.fromOffset(
+                Width,
+                45
+            )
 
         TitleHolder.Size =
             UDim2.new(0, Width, 1, 0)
@@ -22063,24 +22642,71 @@ function Library:CreateWindow(WindowInfo)
             })
 
             TabLeft = New("ScrollingFrame", {
-                AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                CanvasSize = UDim2.fromScale(0, 0),
-                ScrollBarImageTransparency = 1,
-                ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, -3, 1, 0),
-                Parent = TabContainer,
+                AutomaticCanvasSize =
+                    Enum.AutomaticSize.Y,
+
+                BackgroundTransparency =
+                    1,
+
+                CanvasSize =
+                    UDim2.fromScale(
+                        0,
+                        0
+                    ),
+
+                ScrollBarImageColor3 =
+                    "OutlineColor",
+
+                ScrollBarImageTransparency =
+                    0.72,
+
+                ScrollBarThickness =
+                    2,
+
+                ScrollingDirection =
+                    Enum.ScrollingDirection.Y,
+
+                Size =
+                    UDim2.new(
+                        0.5,
+                        -5,
+                        1,
+                        0
+                    ),
+
+                Parent =
+                    TabContainer,
             })
+
             New("UIListLayout", {
-                Padding = UDim.new(0, 2),
-                Parent = TabLeft,
+                Padding =
+                    UDim.new(
+                        0,
+                        8
+                    ),
+
+                SortOrder =
+                    Enum.SortOrder.LayoutOrder,
+
+                Parent =
+                    TabLeft,
             })
+
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 2),
-                PaddingLeft = UDim.new(0, 2),
-                PaddingRight = UDim.new(0, 2),
-                PaddingTop = UDim.new(0, 2),
-                Parent = TabLeft,
+                PaddingBottom =
+                    UDim.new(0, 4),
+
+                PaddingLeft =
+                    UDim.new(0, 4),
+
+                PaddingRight =
+                    UDim.new(0, 4),
+
+                PaddingTop =
+                    UDim.new(0, 4),
+
+                Parent =
+                    TabLeft,
             })
             do
                 New("Frame", {
@@ -22096,26 +22722,83 @@ function Library:CreateWindow(WindowInfo)
             end
 
             TabRight = New("ScrollingFrame", {
-                AnchorPoint = Vector2.new(1, 0),
-                AutomaticCanvasSize = Enum.AutomaticSize.Y,
-                BackgroundTransparency = 1,
-                CanvasSize = UDim2.fromScale(0, 0),
-                Position = UDim2.fromScale(1, 0),
-                ScrollBarImageTransparency = 1,
-                ScrollBarThickness = 0,
-                Size = UDim2.new(0.5, -3, 1, 0),
-                Parent = TabContainer,
+                AnchorPoint =
+                    Vector2.new(
+                        1,
+                        0
+                    ),
+
+                AutomaticCanvasSize =
+                    Enum.AutomaticSize.Y,
+
+                BackgroundTransparency =
+                    1,
+
+                CanvasSize =
+                    UDim2.fromScale(
+                        0,
+                        0
+                    ),
+
+                Position =
+                    UDim2.fromScale(
+                        1,
+                        0
+                    ),
+
+                ScrollBarImageColor3 =
+                    "OutlineColor",
+
+                ScrollBarImageTransparency =
+                    0.72,
+
+                ScrollBarThickness =
+                    2,
+
+                ScrollingDirection =
+                    Enum.ScrollingDirection.Y,
+
+                Size =
+                    UDim2.new(
+                        0.5,
+                        -5,
+                        1,
+                        0
+                    ),
+
+                Parent =
+                    TabContainer,
             })
+
             New("UIListLayout", {
-                Padding = UDim.new(0, 2),
-                Parent = TabRight,
+                Padding =
+                    UDim.new(
+                        0,
+                        8
+                    ),
+
+                SortOrder =
+                    Enum.SortOrder.LayoutOrder,
+
+                Parent =
+                    TabRight,
             })
+
             New("UIPadding", {
-                PaddingBottom = UDim.new(0, 2),
-                PaddingLeft = UDim.new(0, 2),
-                PaddingRight = UDim.new(0, 2),
-                PaddingTop = UDim.new(0, 2),
-                Parent = TabRight,
+                PaddingBottom =
+                    UDim.new(0, 4),
+
+                PaddingLeft =
+                    UDim.new(0, 4),
+
+                PaddingRight =
+                    UDim.new(0, 4),
+
+                PaddingTop =
+                    UDim.new(0, 4),
+
+                Parent =
+                    TabRight,
             })
             do
                 New("Frame", {
